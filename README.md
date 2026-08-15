@@ -24,6 +24,8 @@ A lightweight, standalone desktop overlay application designed to enhance your P
 
 <img width="1911" height="1016" alt="PokePal Preview" src="https://github.com/user-attachments/assets/e6d20da0-6a24-496b-a399-db90727364c9" />
 
+---
+
 ## 🚀 Get Started
 
 1. Head over to the **[Releases](../../releases)** page of this repository.
