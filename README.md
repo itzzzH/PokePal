@@ -1,4 +1,4 @@
-# 🐾 PokePal
+# PokePal
 
 ![Python](https://img.shields.io/badge/Python-3.14-blue)
 ![PyQt6](https://img.shields.io/badge/PyQt6-UI-green)
