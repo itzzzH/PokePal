@@ -42,7 +42,7 @@ A lightweight, standalone desktop overlay application designed to enhance your P
 
 > **⚠️ Important:** Ensure the **`data/`** folder stays in the same directory right alongside `pokepal.exe`.
 
-alternatively you can run from Source *(For Developers - Requires Python 3.14 and PyQt6)*
+alternatively you can run from Source *(Requires Python 3.14 and PyQt6)*
 
 ---
 
