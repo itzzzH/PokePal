@@ -11,10 +11,15 @@ A lightweight, standalone desktop overlay application designed to enhance your P
 ## ✨ Widgets
 
 * **Pokédex:** Search for any Pokémon to view base stats, abilities, evolution lines, and learnsets. You can also filter encounter data by region, location, level, season, time of day, and type (Horde, Lure, etc.).
+
 * **Easy Tracking:** Customizable counters for tracking in-game stats like boxes sold or alphas caught (use your mouse scroll wheel to adjust counts instantly).
+  
 * **Breeding Calculator:** Simulate breeding outcomes to calculate offspring stats, nature inheritance, and individual values (IVs).
+  
 * **Matchup Calculator:** Select types to instantly view damage multipliers, weaknesses, resistances, and immunities.
+  
 * **Timers:** Keep track of daily and hourly tasks like gym reruns and berry farming.
+  
 * **Notepad:** A quick sticky note for jotting down reminders on the fly.
 
 ---
