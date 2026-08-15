@@ -24,9 +24,9 @@
 
 
 ## 🧠 why i built it?
-i was tired constantly having to tab out of PokeMMO to check encounters, look up moves, calculate breeding stats, or keep track of manual hunts and timers.
+*i was tired constantly having to tab out of PokeMMO to check encounters, look up moves, calculate breeding stats, or keep track of manual hunts and timers.
 
-The goal was to create a lightweight, community-friendly companion that puts everything you need right in one place without cluttering your workflow, modifying game files, or risking your account. It is designed to keep you immersed in the game without needing multiple tabs open.
+The goal was to create a lightweight, community-friendly companion that puts everything you need right in one place without cluttering your workflow, modifying game files, or risking your account. It is designed to keep you immersed in the game without needing multiple tabs open.*
 
 
 🛠️ Tech
