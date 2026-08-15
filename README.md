@@ -30,8 +30,6 @@
 
 ## 🚀 Get Started
 
-Option 1: Run the Pre-Built Application (For Users)
-
    Head over to the Releases page of this repository.
 
    Download the latest release .zip archive.
@@ -40,10 +38,10 @@ Option 1: Run the Pre-Built Application (For Users)
 
    Double-click pokepal.exe to launch the application.
 
-   **Important: Ensure the data/ folder stays in the same directory right alongside pokepal.exe**
-
-   Option 2: Run from Source (For Developers)
+   Alternative you can run from Source (For Developers)
    *requires python 3.14 and pyQt6*
+
+   **Important: Ensure the data/ folder stays in the same directory right alongside pokepal.exe**
 
 🛠️ Tech
 
