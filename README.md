@@ -28,6 +28,19 @@
 
 *The goal was to create a lightweight, community-friendly companion that puts everything you need right in one place without cluttering your workflow, modifying game files, or risking your account. It is designed to keep you immersed in the game without needing multiple tabs open.*
 
+## 🚀 Get Started
+
+Option 1: Run the Pre-Built Application (For Users)
+
+   Head over to the Releases page of this repository.
+
+   Download the latest release .zip archive.
+
+   Extract the contents to a folder of your choice on your computer.
+
+   Double-click pokepal.exe to launch the application.
+
+   **Important: Ensure the data/ folder stays in the same directory right alongside pokepal.exe**
 
 🛠️ Tech
 
