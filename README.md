@@ -5,9 +5,8 @@ A lightweight, standalone desktop overlay application designed to enhance your P
 
 ## ✨ widgets
 
- * **Pokémon Database & Lookup:** Search for any Pokémon to view base stats, abilities, evolution lines, and learnsets.
-
- * **Location Finder:** Filter encounter data by region, location, level, season, time of day, and encounter type (Horde, Lure, etc.).
+ * **Pokédex** Search for any Pokémon to view base stats, abilities, evolution lines, and learnsets.
+   you can also filter encounter data by region, location, level, season, time of day, and encounter type (Horde, Lure, etc.).
 
  * **Easy Tracking:** customisable counters for tracking in-game stats—like boxes sold or alphas caught (use your mouse scroll wheel to adjust counts instantly.)
 
