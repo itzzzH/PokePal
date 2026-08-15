@@ -6,6 +6,8 @@
 
 A lightweight, standalone desktop overlay application designed to enhance your PokeMMO experience by providing quick access to essential tools and calculators without needing to tab out of the game.
 
+---
+
 ## ✨ Widgets
 
 * **Pokédex:** Search for any Pokémon to view base stats, abilities, evolution lines, and learnsets. You can also filter encounter data by region, location, level, season, time of day, and type (Horde, Lure, etc.).
@@ -19,6 +21,8 @@ A lightweight, standalone desktop overlay application designed to enhance your P
 * **Timers:** Keep track of daily and hourly tasks like gym reruns and berry farming.
 
 * **Notepad:** A quick sticky note for jotting down reminders on the fly.
+
+---
 
 ## 📸 Preview
 
