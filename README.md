@@ -35,6 +35,7 @@ A lightweight, standalone desktop overlay application designed to enhance your P
 
 alternatively you can run from Source *(Requires Python 3.14 and PyQt6)*
 
+---
 
 ## 🧠 Why I Built It
 
@@ -42,7 +43,7 @@ alternatively you can run from Source *(Requires Python 3.14 and PyQt6)*
 > 
 > *The goal was to create a lightweight, community-friendly companion that puts everything you need right in one place without cluttering your workflow, modifying game files, or risking your account. It is designed to keep you immersed in the game without needing multiple tabs open.*
 
-
+---
 
 🛡️ Completely Safe & Independent
 
