@@ -42,6 +42,9 @@ Option 1: Run the Pre-Built Application (For Users)
 
    **Important: Ensure the data/ folder stays in the same directory right alongside pokepal.exe**
 
+   Option 2: Run from Source (For Developers)
+   *requires python 3.14 and pyQt6*
+
 🛠️ Tech
 
     Language: Python 3.14
