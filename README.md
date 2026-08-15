@@ -10,7 +10,7 @@
 
  * **Easy Tracking:** customisable counters for tracking in-game stats like boxes sold or alphas caught (use your mouse scroll wheel to adjust counts instantly.)
 
- * **Breeding Calculator:** Calculate offspring stats, nature, and individual values (IVs) for parent combinations.
+ * **Breeding Calculator:** simulate breeding outcomes to calculate offspring stats, nature inheritance, and individual values (IVs).
 
  * **Matchup Calculator:** Select types to instantly view damage multipliers, weaknesses, resistances, and immunities.
 
