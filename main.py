@@ -86,16 +86,16 @@ class MainAppController:
 
     # --- RESTORE WIDGET VISIBILITY ---
     self.hub.setVisible(self.config.get("hub_visible", True))
-    self.counter.setVisible(self.config.get("counter_visible", True))
+    self.counter.setVisible(self.config.get("counter_visible", False))  # <-- Changed default to False
     self.pokedex.setVisible(self.config.get("pokedex_visible", False))
     self.breeding.setVisible(self.config.get("breeding_visible", False))
     self.timers.setVisible(self.config.get("timers_visible", False))
     self.weakness.setVisible(self.config.get("weakness_visible", False))
     self.notepad.setVisible(self.config.get("sticky_note_visible", False))
 
-    if not self.hub.isVisible() and not self.counter.isVisible():
+    # Fallback to ensure ONLY the Hub is forced open if nothing else is
+    if not self.hub.isVisible():
       self.hub.show()
-      self.counter.show()
 
     # --- STARTUP FINISHED ---
     self._initializing = False

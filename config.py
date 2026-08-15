@@ -14,7 +14,7 @@ DEFAULT_CONFIG = {
         {"name": "Phases", "count": 1},
         {"name": "Target Shinies", "count": 0}
     ],
-    "hub_pos": [100, 100],
+    "hub_pos": [955, 959],
     "counter_pos": [180, 100],
     "pokedex_pos": [450, 100],
     "breeding_pos": [200, 200],
