@@ -3,19 +3,21 @@
 A lightweight, standalone desktop overlay application designed to enhance your PokeMMO experience by providing quick access to essential tools and calculators without needing to tab out of the game.
 
 
-## ✨ Features
+## ✨ widgets
 
-  Pokémon Database & Lookup: Search for any Pokémon to view base stats, abilities, evolution lines, and learnsets.
+  **Pokémon Database & Lookup:** Search for any Pokémon to view base stats, abilities, evolution lines, and learnsets.
 
-  Encounter & Location Finder: Filter encounter data by region, location, level, season, time of day, and encounter type (Horde, Lure, etc.).
+  **Location Finder:** Filter encounter data by region, location, level, season, time of day, and encounter type (Horde, Lure, etc.).
 
-  Easy Tracking: customisable counters for tracking in-game stats—like boxes sold or alphas caught (use your mouse scroll wheel to adjust counts instantly.)
+  **Easy Tracking:** customisable counters for tracking in-game stats—like boxes sold or alphas caught (use your mouse scroll wheel to adjust counts instantly.)
 
-  Breeding Calculator: Calculate offspring stats, nature, and individual values (IVs) for parent combinations.
+  **Breeding Calculator:** Calculate offspring stats, nature, and individual values (IVs) for parent combinations.
 
-  Matchup Calculator: Select types to instantly view damage multipliers, weaknesses, resistances, and immunities.
+  **Matchup Calculator:** Select types to instantly view damage multipliers, weaknesses, resistances, and immunities.
 
-  Timers: Keep track of daily/hourly tasks like gym reruns and berry farming.
+  **Timers:** Keep track of daily/hourly tasks like gym reruns and berry farming.
+
+  **notepad:** a sticky note just in case you need to remember something.
 
 
 ## 📸 Preview
