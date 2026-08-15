@@ -24,16 +24,6 @@ A lightweight, standalone desktop overlay application designed to enhance your P
 
 <img width="1911" height="1016" alt="PokePal Preview" src="https://github.com/user-attachments/assets/e6d20da0-6a24-496b-a399-db90727364c9" />
 
----
-
-## 🧠 Why I Built It
-
-> *I was tired of constantly having to tab out of PokeMMO to check encounters, look up moves, calculate breeding stats, or keep track of manual hunts and timers.*
-> 
-> *The goal was to create a lightweight, community-friendly companion that puts everything you need right in one place without cluttering your workflow, modifying game files, or risking your account. It is designed to keep you immersed in the game without needing multiple tabs open.*
-
----
-
 ## 🚀 Get Started
 
 1. Head over to the **[Releases](../../releases)** page of this repository.
@@ -44,6 +34,14 @@ A lightweight, standalone desktop overlay application designed to enhance your P
 > **⚠️ Important:** Ensure the **`data/`** folder stays in the same directory right alongside `pokepal.exe`.
 
 alternatively you can run from Source *(Requires Python 3.14 and PyQt6)*
+
+---
+
+## 🧠 Why I Built It
+
+> *I was tired of constantly having to tab out of PokeMMO to check encounters, look up moves, calculate breeding stats, or keep track of manual hunts and timers.*
+> 
+> *The goal was to create a lightweight, community-friendly companion that puts everything you need right in one place without cluttering your workflow, modifying game files, or risking your account. It is designed to keep you immersed in the game without needing multiple tabs open.*
 
 ---
 
