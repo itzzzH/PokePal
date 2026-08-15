@@ -1,6 +1,6 @@
 ## PokePal
 
-A lightweight, standalone desktop overlay application designed to enhance your PokeMMO experience by providing quick access to essential tools and calculators without needing to tab out of the game.
+*A lightweight, standalone desktop overlay application designed to enhance your PokeMMO experience by providing quick access to essential tools and calculators without needing to tab out of the game.*
 
 
 ## ✨ widgets
