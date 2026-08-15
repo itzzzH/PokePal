@@ -23,11 +23,9 @@ A lightweight, standalone desktop overlay application designed to enhance your P
 
 
 ## why i built it?
+i was tired constantly having to tab out of PokeMMO to check encounter tables, look up moves, calculate breeding stats, or keep track of manual hunts and timers.
 
-PokePal was built out of a simple frustration: constantly having to tab out of PokeMMO to check encounter tables, look up moves, calculate breeding stats, or keep track of manual hunts and timers.
-
-The goal was to create a lightweight, community-friendly companion that puts everything you need right in one place without cluttering your workflow, modifying game files, or risking your account. It is designed to keep you immersed in the 
-game without needing multiple tabs open!
+The goal was to create a lightweight, community-friendly companion that puts everything you need right in one place without cluttering your workflow, modifying game files, or risking your account. It is designed to keep you immersed in the game without needing multiple tabs open!
 
 
 🛠️ Tech
