@@ -83,7 +83,6 @@ class PokedexWidget(BaseOverlay):
         self.sprite_lbl.setToolTip("Click to toggle: Front -> Back -> Shiny")
         self.sprite_lbl.mousePressEvent = self.cycle_sprite_mode
         
-        # Mode label embedded inside the sprite box as an overlay
         self.sprite_mode_lbl = QLabel("Front", self.sprite_lbl)
         self.sprite_mode_lbl.setGeometry(10, 102, 110, 20)
         self.sprite_mode_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -137,6 +136,7 @@ class PokedexWidget(BaseOverlay):
             pbar = QProgressBar()
             pbar.setRange(0, 255)
             pbar.setValue(50)
+            pbar.setFormat("%v")  # <-- Displays raw stat value instead of percentage
             row_l.addWidget(lbl)
             row_l.addWidget(pbar)
             s_layout.addLayout(row_l)
@@ -149,7 +149,6 @@ class PokedexWidget(BaseOverlay):
         f_layout.setContentsMargins(6, 6, 6, 6)
         f_layout.setSpacing(4)
 
-        # Consistent stylesheet for all filter / toggle buttons to prevent text stretching/leaking
         self.filter_btn_style = """
             QPushButton {
                 background-color: #252530;
@@ -329,17 +328,35 @@ class PokedexWidget(BaseOverlay):
             self.sprite_lbl.setText(f"No {self.MODES[self.sprite_mode]}")
 
     def update_stats_bars(self, stats):
+        # 1. Handle if stats is a list (e.g., [45, 49, 49, 65, 65, 45]) which is standard for monster.json
+        if isinstance(stats, list) and len(stats) >= 6:
+            # Standard order: HP, Atk, Def, SpA, SpD, Spe
+            stat_order = ["hp", "attack", "def", "spa", "spd", "spe"]
+            for idx, stat_key in enumerate(stat_order):
+                if stat_key in self.stat_bars:
+                    self.stat_bars[stat_key].setValue(int(stats[idx]))
+            return
+
+        # 2. Handle if stats is a dictionary
+        # The keys here now perfectly match the keys you generated in self.stat_bars
         key_map = {
-            "hp": ["hp"], "attack": ["attack", "atk"], "defense": ["defense", "def"],
-            "sp. atk": ["sp. atk", "spa", "special-attack"], "sp. def": ["sp. def", "spd", "special-defense"], "speed": ["speed", "spe"]
+            "hp": ["hp", "base_hp"], 
+            "attack": ["attack", "atk", "base_attack"], 
+            "def": ["defense", "def", "base_defense"],
+            "spa": ["special-attack", "sp_attack", "sp. atk", "spa"], 
+            "spd": ["special-defense", "sp_defense", "sp. def", "spd"], 
+            "spe": ["speed", "spe", "base_speed"]
         }
+        
         for stat_key, bar in self.stat_bars.items():
             possible_keys = key_map.get(stat_key, [stat_key])
-            val = 50
-            for k in possible_keys:
-                if k in stats:
-                    val = stats[k]
-                    break
+            val = 50  # Default fallback
+            
+            if isinstance(stats, dict):
+                for k in possible_keys:
+                    if k in stats:
+                        val = stats[k]
+                        break
             bar.setValue(int(val))
 
     def load_pokemon_data(self, poke_id):
