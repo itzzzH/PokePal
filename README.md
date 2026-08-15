@@ -22,7 +22,7 @@ A lightweight, standalone desktop overlay application designed to enhance your P
 <img width="1911" height="1016" alt="image" src="https://github.com/user-attachments/assets/e6d20da0-6a24-496b-a399-db90727364c9" />
 
 
-why i built it?
+## why i built it?
 
 PokePal was built out of a simple frustration: constantly having to tab out of PokeMMO to check encounter tables, look up moves, calculate breeding stats, or keep track of manual hunts and timers.
 
