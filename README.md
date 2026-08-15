@@ -35,7 +35,6 @@ A lightweight, standalone desktop overlay application designed to enhance your P
 
 ## 🚀 Get Started
 
-### Option 1: Run the Pre-Built Application (For Users)
 1. Head over to the **[Releases](../../releases)** page of this repository.
 2. Download the latest release `.zip` archive.
 3. Extract the contents to a folder of your choice on your computer.
@@ -43,10 +42,17 @@ A lightweight, standalone desktop overlay application designed to enhance your P
 
 > **⚠️ Important:** Ensure the **`data/`** folder stays in the same directory right alongside `pokepal.exe`.
 
-### Option 2: Run from Source (For Developers)
+alternatively you can run from Source (For Developers)
 *(Requires Python 3.14 and PyQt6)*
 
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/your-username/pokepal.git](https://github.com/your-username/pokepal.git)
-   cd pokepal
+---
+
+🛡️ Completely Safe & Independent
+
+    Independent Companion: PokePal runs entirely as a separate application and never hooks into the PokeMMO game client, system memory, or Windows processes.
+
+    Seamless Overlay UI: Built with PyQt6 to sit alongside your game, with all features and interactions handled cleanly through standard mouse actions.
+
+    Local Storage: All data, notes, and information are stored securely on your own machine via lightweight JSON files.
+
+    100% Offline: Operates entirely offline with no internet connection or external servers required, keeping everything local to your computer.
