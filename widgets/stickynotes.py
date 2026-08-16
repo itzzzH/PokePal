@@ -149,7 +149,8 @@ class NotepadWidget(BaseOverlay):
 
     def add_tab(self, title, text):
         text_edit = QTextEdit()
-        text_edit.setMarkdown(text if text else "")  # Loads markdown text natively
+        text_edit.setAcceptRichText(False)  # Disables rich text insertion/formatting support
+        text_edit.setPlainText(text if text else "")  # Treats content strictly as plain text
         text_edit.setStyleSheet("""
             QTextEdit {
                 background-color: transparent;
@@ -200,20 +201,20 @@ class NotepadWidget(BaseOverlay):
             self.save_notes()
 
     def save_note_as_txt(self, index):
-        """Opens a file dialog to save the contents of the selected note tab as a Markdown file."""
+        """Opens a file dialog to save the contents ofpropertyPath the selected note tab as a text file."""
         if index == -1:
             return
         title = self.tabs.tabText(index)
         text_widget = self.tabs.widget(index)
-        content = text_widget.toMarkdown()  # Exports markdown formatting
+        content = text_widget.toPlainText()  # Exports pure plain text
         
-        default_filename = "".join(c for c in title if c.isalnum() or c in (' ', '_', '-')).strip() + ".md"
+        default_filename = "".join(c for c in title if c.isalnum() or c in (' ', '_', '-')).strip() + ".txt"
         
         file_path, _ = QFileDialog.getSaveFileName(
             self,
-            "Save Note as Markdown File",
+            "Save Note as Text File",
             default_filename,
-            "Markdown Files (*.md);;Text Files (*.txt)"
+            "Text Files (*.txt)"
         )
         
         if file_path:
@@ -224,12 +225,12 @@ class NotepadWidget(BaseOverlay):
                 QMessageBox.warning(self, "Error", f"Failed to save file:\n{e}")
 
     def load_note_from_txt(self):
-        """Opens a file dialog to load a Markdown or text file into a new note tab (restricted exclusively to .md and .txt)."""
+        """Opens a file dialog to load a text file into a new note tab."""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "Open Note File",
             "",
-            "Markdown & Text Files (*.md *.txt)"
+            "Text Files (*.txt)"
         )
         if file_path:
             try:
@@ -276,7 +277,7 @@ class NotepadWidget(BaseOverlay):
             for i in range(self.tabs.count()):
                 title = self.tabs.tabText(i)
                 text_widget = self.tabs.widget(i)
-                tabs_data.append({"title": title, "text": text_widget.toMarkdown()})  # Persists markdown content
+                tabs_data.append({"title": title, "text": text_widget.toPlainText()})  # Persists plain text string
                 
             self.main_app.config["sticky_note_tabs"] = tabs_data
             
