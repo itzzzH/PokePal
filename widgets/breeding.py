@@ -91,7 +91,10 @@ class BreedingParentPanel(QGroupBox):
         ivs_layout.setSpacing(3)
 
         self.iv_inputs = {}
-        stat_map = [("HP", "hp"), ("Attack", "attack"), ("Defense", "defense"), ("Sp. Atk", "spa"), ("Sp. Def", "spd"), ("Speed", "spe")]
+        stat_map = [
+            ("HP", "hp"), ("Attack", "attack"), ("Defense", "defense"),
+            ("Sp. Atk", "spa"), ("Sp. Def", "spd"), ("Speed", "spe")
+        ]
         
         for s_name, s_key in stat_map:
             row_h = QHBoxLayout()
@@ -116,8 +119,10 @@ class BreedingParentPanel(QGroupBox):
 
     def perform_search(self):
         txt = self.search_input.text().strip()
-        if not txt: return
-        if txt.startswith("#"): txt = txt[1:]
+        if not txt:
+            return
+        if txt.startswith("#"):
+            txt = txt[1:]
         query_val = txt.split(" ")[0].lower()
         found_id = None
         if query_val.isdigit():
@@ -138,7 +143,11 @@ class BreedingParentPanel(QGroupBox):
         if "ditto" in name_val.lower():
             self.gender_input.setText("Genderless")
 
-        paths = [os.path.join("data", "sprites", f"{self.current_id}.png"), os.path.join("sprites", f"{self.current_id}.png"), f"{self.current_id}.png"]
+        paths = [
+            os.path.join("data", "sprites", f"{self.current_id}.png"),
+            os.path.join("sprites", f"{self.current_id}.png"),
+            f"{self.current_id}.png"
+        ]
         pix = None
         for p in paths:
             if os.path.exists(p):
@@ -248,6 +257,12 @@ class BreedingCalculatorWidget(BaseOverlay):
     def get_pokemon_egg_groups(self, poke_id, poke_name):
         found_groups = []
         clean_name = poke_name.lower().strip()
+        if clean_name.startswith("#"):
+            parts = clean_name.split(" ", 1)
+            if len(parts) > 1:
+                clean_name = parts[1].strip()
+            else:
+                clean_name = clean_name.lstrip("#").strip()
         
         for group_key, group_data in self.egg_groups_db.items():
             if isinstance(group_data, dict):
@@ -263,7 +278,8 @@ class BreedingCalculatorWidget(BaseOverlay):
                             sp_id = int(parts[-1])
                     
                     if sp_name == clean_name or (sp_id and sp_id == int(poke_id)):
-                        found_groups.append(group_name)
+                        if group_name not in found_groups:
+                            found_groups.append(group_name)
                         break
         return found_groups if found_groups else None
 
@@ -290,7 +306,10 @@ class BreedingCalculatorWidget(BaseOverlay):
             self.child_nature_lbl.setText("Nature: —")
             self.child_sprite_lbl.setPixmap(QPixmap())
             self.child_sprite_lbl.setText("Incomplete")
-            self.result_area.setHtml("<span style='color: #FF5555; font-weight: bold;'>⚠️ Incomplete Fields:</span><br>Please ensure Pokémon, Nature, and Gender (unless using Ditto) are fully completed for both parents before calculating.")
+            self.result_area.setHtml(
+                "<span style='color: #FF5555; font-weight: bold;'>⚠️ Incomplete Fields:</span><br>"
+                "Please ensure Pokémon, Nature, and Gender (unless using Ditto) are fully completed for both parents before calculating."
+            )
             return
 
         if is_p1_ditto and not g1:
@@ -305,19 +324,21 @@ class BreedingCalculatorWidget(BaseOverlay):
             compatible = False
             compat_reason = "Two Dittos cannot breed together."
         elif is_p1_ditto or is_p2_ditto:
-            other_gender = g2 if is_p1_ditto else g1
-            if other_gender == "Genderless":
-                other_id = self.parent2.current_id if is_p1_ditto else self.parent1.current_id
-                other_name = self.parent2.search_input.text() if is_p1_ditto else self.parent1.search_input.text()
-                groups = self.get_pokemon_egg_groups(other_id, other_name)
-                if groups:
-                    if any("undiscovered" in str(g).lower() or "no eggs" in str(g).lower() for g in groups):
-                        compatible = False
-                        compat_reason = "This Genderless Pokémon is in the Undiscovered egg group and cannot breed."
+            other_parent = self.parent2 if is_p1_ditto else self.parent1
+            other_poke = p2_poke if is_p1_ditto else p1_poke
+            groups = self.get_pokemon_egg_groups(other_parent.current_id, other_poke)
+            if groups:
+                groups_lower = [str(g).lower() for g in groups]
+                if any("undiscovered" in g or "no eggs" in g or "cannot-breed" in g for g in groups_lower):
+                    compatible = False
+                    compat_reason = "This Pokémon cannot breed (Undiscovered / Cannot-Breed group)."
+            else:
+                compatible = False
+                compat_reason = "Could not verify egg groups for this Pokémon."
         else:
             if g1 == "Genderless" or g2 == "Genderless":
                 compatible = False
-                compat_reason = "Genderless Pokémon require Ditto to breed."
+                compat_reason = "Genderless Pokémon (other than Ditto) require Ditto to breed."
             elif g1 == g2:
                 compatible = False
                 compat_reason = "Parents have the same gender (must be opposite genders or include Ditto)."
@@ -329,12 +350,12 @@ class BreedingCalculatorWidget(BaseOverlay):
                     g_list1_lower = [str(x).lower() for x in g_list1]
                     g_list2_lower = [str(x).lower() for x in g_list2]
 
-                    if any("undiscovered" in x or "no eggs" in x for x in g_list1_lower + g_list2_lower):
+                    if any("undiscovered" in x or "no eggs" in x or "cannot-breed" in x for x in g_list1_lower + g_list2_lower):
                         compatible = False
-                        compat_reason = "One or both Pokémon are in the Undiscovered egg group."
+                        compat_reason = "One or both Pokémon are in the Unbreedable / Undiscovered group."
                     elif not set(g_list1_lower).intersection(set(g_list2_lower)):
                         compatible = False
-                        compat_reason = "Parents do not share a compatible Egg Group."
+                        compat_reason = "Parents do not share at least 1 compatible Egg Group."
                 else:
                     compatible = False
                     compat_reason = "Could not verify egg groups for these Pokémon."
@@ -347,14 +368,29 @@ class BreedingCalculatorWidget(BaseOverlay):
             self.result_area.setHtml(f"<span style='color: #FF5555; font-weight: bold;'>⚠️ Breeding Incompatible:</span><br>{compat_reason}")
             return
 
-        target_parent = self.parent2 if is_p1_ditto else self.parent1
+        if is_p1_ditto:
+            target_parent = self.parent2
+        elif is_p2_ditto:
+            target_parent = self.parent1
+        else:
+            if g1 == "Female" and g2 == "Male":
+                target_parent = self.parent1
+            elif g2 == "Female" and g1 == "Male":
+                target_parent = self.parent2
+            else:
+                target_parent = self.parent1
+
         child_id = target_parent.current_id
         entry = data_manager.MASTER_DEX_DB.get(str(child_id))
         child_name = entry.get("_clean_name", "Unknown") if entry else "Unknown"
 
         self.child_name_lbl.setText(f"Child: #{child_id} {child_name}")
 
-        paths = [os.path.join("data", "sprites", f"{child_id}.png"), os.path.join("sprites", f"{child_id}.png"), f"{child_id}.png"]
+        paths = [
+            os.path.join("data", "sprites", f"{child_id}.png"),
+            os.path.join("sprites", f"{child_id}.png"),
+            f"{child_id}.png"
+        ]
         pix = None
         for p in paths:
             if os.path.exists(p):
@@ -387,10 +423,14 @@ class BreedingCalculatorWidget(BaseOverlay):
         p1_ivs = {}
         p2_ivs = {}
         for s in stat_keys:
-            try: p1_ivs[s] = int(self.parent1.iv_inputs[s].text())
-            except ValueError: p1_ivs[s] = 0
-            try: p2_ivs[s] = int(self.parent2.iv_inputs[s].text())
-            except ValueError: p2_ivs[s] = 0
+            try:
+                p1_ivs[s] = int(self.parent1.iv_inputs[s].text())
+            except ValueError:
+                p1_ivs[s] = 0
+            try:
+                p2_ivs[s] = int(self.parent2.iv_inputs[s].text())
+            except ValueError:
+                p2_ivs[s] = 0
 
         item_stat_map = {
             "power weight": "hp", "power bracer": "attack", "power belt": "defense",
@@ -425,7 +465,7 @@ class BreedingCalculatorWidget(BaseOverlay):
             v2 = p2_ivs[s_key]
             
             if s_key in guaranteed_ivs:
-                val, origin = guaranteed_ivs[s_key]
+                val, _ = guaranteed_ivs[s_key]
                 expected_str = f"<span style='color: #55FF55; font-weight: bold;'>{val} (Guaranteed Item)</span>"
             elif v1 == v2:
                 expected_str = f"<span style='color: #55FF55; font-weight: bold;'>{v1} (Guaranteed Match)</span>"

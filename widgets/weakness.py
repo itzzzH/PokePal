@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import (
 )
 from core.base_overlay import BaseOverlay
 
+
 class WeaknessWidget(BaseOverlay):
     TYPES = [
         "Normal", "Fire", "Water", "Grass", "Electric", "Ice", 
@@ -80,7 +81,7 @@ class WeaknessWidget(BaseOverlay):
             if t in self.selected_types:
                 btn.setChecked(True)
             btn.clicked.connect(lambda _, val=t: self.on_type_clicked(val))
-            type_grid.addWidget(btn, i // 3, i % 3)  # Arranged in 3 columns
+            type_grid.addWidget(btn, i // 3, i % 3)
             self.type_buttons[t] = btn
 
         s_layout.addLayout(type_grid)
@@ -111,13 +112,15 @@ class WeaknessWidget(BaseOverlay):
         self.size_grip.setStyleSheet("background: transparent; width: 14px; height: 14px;")
         self.calculate_matchups()
 
-    def _box_style(self):
+    @staticmethod
+    def _box_style():
         return """
             QGroupBox { color: #A0A0B0; font-size: 11px; font-weight: bold; border: 1px solid #323242; border-radius: 8px; margin-top: 6px; padding-top: 10px; }
             QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 4px; }
         """
 
-    def _btn_style(self, color):
+    @staticmethod
+    def _btn_style(color):
         return f"""
             QPushButton {{ background-color: #22222E; color: #C0C0D0; border: 1px solid #3E3E50; border-radius: 4px; font-size: 9px; font-weight: bold; }}
             QPushButton:checked {{ background-color: {color}; color: #FFFFFF; font-weight: bold; border: 1px solid #FFFFFF; }}
@@ -137,6 +140,7 @@ class WeaknessWidget(BaseOverlay):
         rows_layout = QVBoxLayout(rows_container)
         rows_layout.setContentsMargins(0, 0, 0, 0)
         rows_layout.setSpacing(2)
+        rows_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         v_box.addWidget(rows_container)
         
         parent_layout.addLayout(v_box)
@@ -157,22 +161,24 @@ class WeaknessWidget(BaseOverlay):
             btn.setChecked(t in self.selected_types)
         self.calculate_matchups()
 
-    def populate_section(self, layout, badges_data):
+    def _clear_layout(self, layout):
         while layout.count():
             item = layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
             elif item.layout():
-                sub_l = item.layout()
-                while sub_l.count():
-                    sub_item = sub_l.takeAt(0)
-                    if sub_item.widget():
-                        sub_item.widget().deleteLater()
-                sub_l.deleteLater()
+                self._clear_layout(item.layout())
+                item.layout().deleteLater()
+
+    def populate_section(self, layout, badges_data):
+        self._clear_layout(layout)
         
         if not badges_data:
             lbl = QLabel("None")
             lbl.setStyleSheet("color: #777788; font-size: 10px; font-style: italic; border: none; background: transparent;")
+            lbl.setFixedHeight(22)
+            lbl.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
             layout.addWidget(lbl)
             return
 
@@ -188,21 +194,25 @@ class WeaknessWidget(BaseOverlay):
             for type_name, mult_str in chunk:
                 bg = self.TYPE_COLORS.get(type_name, "#555566")
                 badge = QLabel(f"{type_name} ({mult_str})")
-                badge.setStyleSheet(f"background-color: {bg}; color: #FFFFFF; font-size: 9px; font-weight: bold; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.3);")
+                badge.setFixedHeight(22)
+                badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                badge.setStyleSheet(
+                    f"background-color: {bg}; color: #FFFFFF; font-size: 9px; font-weight: bold; "
+                    f"padding: 2px 8px; border-radius: 5px; border: 1px solid rgba(255, 255, 255, 0.3);"
+                )
                 row_layout.addWidget(badge)
             
             layout.addWidget(row_widget)
 
     def calculate_matchups(self):
         multipliers = {}
-        for dt in self.TYPES:
+        for atk_type in self.TYPES:
             mult = 1.0
-            for atk_t, defs in self.CHART.items():
-                if atk_t == dt:
-                    for t in self.selected_types:
-                        if t in defs:
-                            mult *= defs[t]
-            multipliers[dt] = mult
+            type_chart = self.CHART.get(atk_type, {})
+            for def_type in self.selected_types:
+                if def_type in type_chart:
+                    mult *= type_chart[def_type]
+            multipliers[atk_type] = mult
 
         weak_badges = []
         resist_badges = []

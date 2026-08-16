@@ -1,7 +1,7 @@
 # widgets/pokedex.py
 import os
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QPixmapCache
 from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, 
     QFrame, QGroupBox, QSizeGrip, QProgressBar, QCompleter, QTextEdit, QWidget
@@ -136,7 +136,7 @@ class PokedexWidget(BaseOverlay):
             pbar = QProgressBar()
             pbar.setRange(0, 255)
             pbar.setValue(50)
-            pbar.setFormat("%v")  # <-- Displays raw stat value instead of percentage
+            pbar.setFormat("%v")
             row_l.addWidget(lbl)
             row_l.addWidget(pbar)
             s_layout.addLayout(row_l)
@@ -305,40 +305,44 @@ class PokedexWidget(BaseOverlay):
             self.load_pokemon_data(found_id)
 
     def load_sprite(self):
+        """Loads sprite pixmap (120x120) with QPixmapCache caching."""
         mode_str = self.MODES[self.sprite_mode].lower()
         cid = self.current_id
+        cache_key = f"pokedex_sprite_{mode_str}_{cid}"
 
-        if mode_str == "front":
-            paths = [os.path.join("data", "sprites", f"{cid}.png"), os.path.join("sprites", f"{cid}.png"), f"{cid}.png"]
-        elif mode_str == "back":
-            paths = [os.path.join("data", "sprites", "back", f"{cid}.png"), os.path.join("sprites", f"{cid}_back.png"), f"{cid}_back.png"]
-        else:
-            paths = [os.path.join("data", "sprites", "shiny", f"{cid}.png"), os.path.join("sprites", f"{cid}_shiny.png"), f"{cid}_shiny.png"]
+        pix = QPixmapCache.find(cache_key)
 
-        pix = None
-        for p in paths:
-            if os.path.exists(p):
-                pix = QPixmap(p)
-                break
+        if pix is None:
+            if mode_str == "front":
+                paths = [os.path.join("data", "sprites", f"{cid}.png"), os.path.join("sprites", f"{cid}.png"), f"{cid}.png"]
+            elif mode_str == "back":
+                paths = [os.path.join("data", "sprites", "back", f"{cid}.png"), os.path.join("sprites", f"{cid}_back.png"), f"{cid}_back.png"]
+            else:
+                paths = [os.path.join("data", "sprites", "shiny", f"{cid}.png"), os.path.join("sprites", f"{cid}_shiny.png"), f"{cid}_shiny.png"]
+
+            for p in paths:
+                if os.path.exists(p):
+                    loaded_pix = QPixmap(p)
+                    if not loaded_pix.isNull():
+                        pix = loaded_pix.scaled(120, 120, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                        QPixmapCache.insert(cache_key, pix)
+                    break
+
         if pix and not pix.isNull():
-            self.sprite_lbl.setPixmap(pix.scaled(120, 120, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+            self.sprite_lbl.setPixmap(pix)
             self.sprite_lbl.setText("")
         else:
             self.sprite_lbl.setPixmap(QPixmap())
             self.sprite_lbl.setText(f"No {self.MODES[self.sprite_mode]}")
 
     def update_stats_bars(self, stats):
-        # 1. Handle if stats is a list (e.g., [45, 49, 49, 65, 65, 45]) which is standard for monster.json
         if isinstance(stats, list) and len(stats) >= 6:
-            # Standard order: HP, Atk, Def, SpA, SpD, Spe
             stat_order = ["hp", "attack", "def", "spa", "spd", "spe"]
             for idx, stat_key in enumerate(stat_order):
                 if stat_key in self.stat_bars:
                     self.stat_bars[stat_key].setValue(int(stats[idx]))
             return
 
-        # 2. Handle if stats is a dictionary
-        # The keys here now perfectly match the keys you generated in self.stat_bars
         key_map = {
             "hp": ["hp", "base_hp"], 
             "attack": ["attack", "atk", "base_attack"], 
@@ -350,7 +354,7 @@ class PokedexWidget(BaseOverlay):
         
         for stat_key, bar in self.stat_bars.items():
             possible_keys = key_map.get(stat_key, [stat_key])
-            val = 50  # Default fallback
+            val = 50
             
             if isinstance(stats, dict):
                 for k in possible_keys:

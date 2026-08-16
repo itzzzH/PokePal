@@ -27,6 +27,21 @@ class SettingsWindow(QWidget):
     def closeEvent(self, event):
         event.ignore()
         self.hide()
+        # Discard un-saved changes (such as un-saved added rows) when closing via X
+        self.revert_to_saved_state()
+
+    def revert_to_saved_state(self):
+        while self.c_rows_layout.count():
+            item = self.c_rows_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        self.populate_counter_fields()
+
+        while self.t_rows_layout.count():
+            item = self.t_rows_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        self.populate_timer_fields()
 
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -357,10 +372,16 @@ class SettingsWindow(QWidget):
         if new_timer_rows:
             self.main_app.timer_rows = new_timer_rows
 
+        # Rebuild rows while preserving existing overlay width and height
         if hasattr(self.main_app, 'counter') and hasattr(self.main_app.counter, 'rebuild_rows'):
+            c_w, c_h = self.main_app.counter.width(), self.main_app.counter.height()
             self.main_app.counter.rebuild_rows()
+            self.main_app.counter.resize(c_w, c_h)
+            
         if hasattr(self.main_app, 'timers') and hasattr(self.main_app.timers, 'rebuild_rows'):
+            t_w, t_h = self.main_app.timers.width(), self.main_app.timers.height()
             self.main_app.timers.rebuild_rows()
+            self.main_app.timers.resize(t_w, t_h)
 
         self.main_app.save_settings()
         self.hide()

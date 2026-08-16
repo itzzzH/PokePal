@@ -1,3 +1,4 @@
+# main.py
 import sys
 import time
 from PyQt6.QtWidgets import QApplication
@@ -18,211 +19,145 @@ from widgets.stickynotes import NotepadWidget
 
 class MainAppController:
 
-  def __init__(self):
-    # --- Prevent overwriting visibility during startup ---
-    self._initializing = True
+    def __init__(self):
+        self._initializing = True
+        self.config = load_config()
 
-    # 1. Load configuration
-    self.config = load_config()
+        # Stylesheet & Counter Configuration
+        self.hub_opacity = self.config.get("hub_opacity", 90)
+        self.counter_bg = self.config.get("counter_bg", "#1E1E24")
+        self.counter_opacity = self.config.get("counter_opacity", 85)
+        self.counter_text_color = self.config.get("counter_text_color", "#E2E2E8")
+        self.counter_text_alpha = self.config.get("counter_text_alpha", 100)
+        self.counter_num_color = self.config.get("counter_num_color", "#80A0FF")
+        self.counter_num_alpha = self.config.get("counter_num_alpha", 100)
 
-    self.hub_opacity = self.config.get("hub_opacity", 90)
-    self.counter_bg = self.config.get("counter_bg", "#1E1E24")
-    self.counter_opacity = self.config.get("counter_opacity", 85)
-    self.counter_text_color = self.config.get("counter_text_color", "#E2E2E8")
-    self.counter_text_alpha = self.config.get("counter_text_alpha", 100)
-    self.counter_num_color = self.config.get("counter_num_color", "#80A0FF")
-    self.counter_num_alpha = self.config.get("counter_num_alpha", 100)
+        # Timers Styling Configuration
+        self.timers_bg = self.config.get("timers_bg", "#1E1E24")
+        self.timers_opacity = self.config.get("timers_opacity", 85)
+        self.timers_text_color = self.config.get("timers_text_color", "#E2E2E8")
+        self.timers_text_alpha = self.config.get("timers_text_alpha", 100)
+        self.timers_num_color = self.config.get("timers_num_color", "#80A0FF")
+        self.timers_num_alpha = self.config.get("timers_num_alpha", 100)
 
-    self.counter_rows = self.config.get(
-        "counter_rows", DEFAULT_CONFIG["counter_rows"]
-    )
-    self.timer_rows = self.config.get(
-        "timer_rows",
-        [
-            {
-                "name": "Gym Rerun",
-                "duration": 18 * 3600,
-                "remaining": 18 * 3600,
-                "is_running": False,
-                "expired": False,
-                "last_updated": time.time(),
-                "sprite_folder": "pokemon",
-                "sprite_id": "145",
-            },
-            {
-                "name": "Berry Farm",
-                "duration": 8 * 3600,
-                "remaining": 8 * 3600,
-                "is_running": False,
-                "expired": False,
-                "last_updated": time.time(),
-                "sprite_folder": "items",
-                "sprite_id": "1",
-            },
-        ],
-    )
+        self.counter_rows = self.config.get("counter_rows", DEFAULT_CONFIG.get("counter_rows", []))
+        self.timer_rows = self.config.get("timer_rows", DEFAULT_CONFIG.get("timer_rows", []))
 
-    # 2. Load databases
-    data_manager.load_all_databases()
+        # 1. Load databases
+        data_manager.load_all_databases()
 
-    # 3. Initialize widgets
-    self.hub = PokeballHub(self)
-    self.counter = CounterWidget(self)
-    self.pokedex = PokedexWidget(self)
-    self.breeding = BreedingCalculatorWidget(self)
-    self.timers = TimersWidget(self)
-    self.weakness = WeaknessWidget(self)
-    self.notepad = NotepadWidget(self)
-    self.settings_window = None
+        # 2. Register overlay widgets: {key: (instance, default_visible, saves_size)}
+        self.widgets = {
+            "hub": (PokeballHub(self), True, False),
+            "counter": (CounterWidget(self), False, True),
+            "pokedex": (PokedexWidget(self), False, True),
+            "breeding": (BreedingCalculatorWidget(self), False, True),
+            "timers": (TimersWidget(self), False, True),
+            "weakness": (WeaknessWidget(self), False, True),
+            "sticky_note": (NotepadWidget(self), False, True),
+        }
 
-    self.counter.update_style(
-        self.counter_bg,
-        self.counter_opacity,
-        self.counter_text_color,
-        self.counter_text_alpha,
-        self.counter_num_color,
-        self.counter_num_alpha,
-    )
+        # Instance attribute mapping for backwards compatibility
+        self.hub = self.widgets["hub"][0]
+        self.counter = self.widgets["counter"][0]
+        self.pokedex = self.widgets["pokedex"][0]
+        self.breeding = self.widgets["breeding"][0]
+        self.timers = self.widgets["timers"][0]
+        self.weakness = self.widgets["weakness"][0]
+        self.notepad = self.widgets["sticky_note"][0]
+        self.settings_window = None
 
-    # --- RESTORE WIDGET VISIBILITY ---
-    self.hub.setVisible(self.config.get("hub_visible", True))
-    self.counter.setVisible(self.config.get("counter_visible", False))  # <-- Changed default to False
-    self.pokedex.setVisible(self.config.get("pokedex_visible", False))
-    self.breeding.setVisible(self.config.get("breeding_visible", False))
-    self.timers.setVisible(self.config.get("timers_visible", False))
-    self.weakness.setVisible(self.config.get("weakness_visible", False))
-    self.notepad.setVisible(self.config.get("sticky_note_visible", False))
+        # Apply counter & timer styling
+        self.counter.update_style(
+            self.counter_bg, self.counter_opacity,
+            self.counter_text_color, self.counter_text_alpha,
+            self.counter_num_color, self.counter_num_alpha
+        )
+        self.timers.update_style(
+            self.timers_bg, self.timers_opacity,
+            self.timers_text_color, self.timers_text_alpha,
+            self.timers_num_color, self.timers_num_alpha
+        )
 
-    # Fallback to ensure ONLY the Hub is forced open if nothing else is
-    if not self.hub.isVisible():
-      self.hub.show()
+        # 3. Restore Visibility based on saved config
+        for key, (widget, default_vis, _) in self.widgets.items():
+            widget.setVisible(self.config.get(f"{key}_visible", default_vis))
 
-    # --- STARTUP FINISHED ---
-    self._initializing = False
+        if not self.hub.isVisible():
+            self.hub.show()
 
-  def toggle_counter(self):
-    if self.counter.isVisible():
-      self.counter.hide()
-    else:
-      self.counter.show()
-    self.save_settings()
+        self._initializing = False
 
-  def toggle_pokedex(self):
-    if self.pokedex.isVisible():
-      self.pokedex.hide()
-    else:
-      self.pokedex.show()
-    self.save_settings()
+    def toggle_widget(self, key: str):
+        if key in self.widgets:
+            widget = self.widgets[key][0]
+            new_vis = not widget.isVisible()
+            widget.setVisible(new_vis)
+            # Explicitly record visibility state here when toggled
+            self.config[f"{key}_visible"] = new_vis
+            self.save_settings()
 
-  def toggle_breeding(self):
-    if self.breeding.isVisible():
-      self.breeding.hide()
-    else:
-      self.breeding.show()
-    self.save_settings()
+    # Generic forwarding methods for context menus or actions
+    def toggle_counter(self): self.toggle_widget("counter")
+    def toggle_pokedex(self): self.toggle_widget("pokedex")
+    def toggle_breeding(self): self.toggle_widget("breeding")
+    def toggle_timers(self): self.toggle_widget("timers")
+    def toggle_weakness(self): self.toggle_widget("weakness")
+    def toggle_notepad(self): self.toggle_widget("sticky_note")
 
-  def toggle_timers(self):
-    if self.timers.isVisible():
-      self.timers.hide()
-    else:
-      self.timers.show()
-    self.save_settings()
+    def open_settings(self):
+        if self.settings_window is None:
+            self.settings_window = SettingsWindow(self)
+        self.settings_window.show()
+        self.settings_window.raise_()
+        self.settings_window.activateWindow()
 
-  def toggle_weakness(self):
-    if self.weakness.isVisible():
-      self.weakness.hide()
-    else:
-      self.weakness.show()
-    self.save_settings()
+    def save_settings(self):
+        if self._initializing:
+            return
 
-  def toggle_notepad(self):
-    if self.notepad.isVisible():
-      self.notepad.hide()
-    else:
-      self.notepad.show()
-    self.save_settings()
-
-  def open_settings(self):
-    if self.settings_window is None:
-      self.settings_window = SettingsWindow(self)
-    self.settings_window.show()
-    self.settings_window.raise_()
-    self.settings_window.activateWindow()
-
-  def save_settings(self):
-    self.config["hub_opacity"] = self.hub_opacity
-    self.config["counter_bg"] = self.counter_bg
-    self.config["counter_opacity"] = self.counter_opacity
-    self.config["counter_text_color"] = self.counter_text_color
-    self.config["counter_text_alpha"] = self.counter_text_alpha
-    self.config["counter_num_color"] = self.counter_num_color
-    self.config["counter_num_alpha"] = self.counter_num_alpha
-
-    for row in self.counter_rows:
-      row["name"] = row["name"].replace("▶", "").strip()
-    self.config["counter_rows"] = self.counter_rows
-
-    for row in self.timer_rows:
-      row["name"] = (
-          row["name"]
-          .replace("▶", "")
-          .replace("⏸", "")
-          .replace("🚨", "")
-          .strip()
-      )
-    self.config["timer_rows"] = self.timer_rows
-
-    if not getattr(self, '_initializing', True):
-      if getattr(self, 'hub', None):
-        self.config["hub_pos"] = [self.hub.x(), self.hub.y()]
-        self.config["hub_visible"] = self.hub.isVisible()
-        
-      if getattr(self, 'counter', None):
-        self.config["counter_pos"] = [self.counter.x(), self.counter.y()]
-        self.config["counter_size"] = [self.counter.width(), self.counter.height()]
-        self.config["counter_visible"] = self.counter.isVisible()
-        
-      if getattr(self, 'pokedex', None):
-        self.config["pokedex_pos"] = [self.pokedex.x(), self.pokedex.y()]
-        self.config["pokedex_size"] = [self.pokedex.width(), self.pokedex.height()]
-        self.config["pokedex_visible"] = self.pokedex.isVisible()
-        
-      if getattr(self, 'breeding', None):
-        self.config["breeding_pos"] = [self.breeding.x(), self.breeding.y()]
-        self.config["breeding_size"] = [
-            self.breeding.width(),
-            self.breeding.height(),
+        # Sanitize state titles without mutating underlying objects in place
+        clean_counters = [
+            {**r, "name": r["name"].replace("▶", "").strip()}
+            for r in self.counter_rows
         ]
-        self.config["breeding_visible"] = self.breeding.isVisible()
-        
-      if getattr(self, 'timers', None):
-        self.config["timers_pos"] = [self.timers.x(), self.timers.y()]
-        self.config["timers_size"] = [self.timers.width(), self.timers.height()]
-        self.config["timers_visible"] = self.timers.isVisible()
-        
-      if getattr(self, 'weakness', None):
-        self.config["weakness_pos"] = [self.weakness.x(), self.weakness.y()]
-        self.config["weakness_size"] = [
-            self.weakness.width(),
-            self.weakness.height(),
+        clean_timers = [
+            {**r, "name": r["name"].replace("▶", "").replace("⏸", "").replace("🚨", "").strip()}
+            for r in self.timer_rows
         ]
-        self.config["weakness_visible"] = self.weakness.isVisible()
 
-      if getattr(self, 'notepad', None):
-        self.config["sticky_note_pos"] = [self.notepad.x(), self.notepad.y()]
-        self.config["sticky_note_size"] = [
-            self.notepad.width(),
-            self.notepad.height(),
-        ]
-        self.config["sticky_note_visible"] = self.notepad.isVisible()
+        self.config.update({
+            "hub_opacity": self.hub_opacity,
+            "counter_bg": self.counter_bg,
+            "counter_opacity": self.counter_opacity,
+            "counter_text_color": self.counter_text_color,
+            "counter_text_alpha": self.counter_text_alpha,
+            "counter_num_color": self.counter_num_color,
+            "counter_num_alpha": self.counter_num_alpha,
+            "timers_bg": self.timers_bg,
+            "timers_opacity": self.timers_opacity,
+            "timers_text_color": self.timers_text_color,
+            "timers_text_alpha": self.timers_text_alpha,
+            "timers_num_color": self.timers_num_color,
+            "timers_num_alpha": self.timers_num_alpha,
+            "counter_rows": clean_counters,
+            "timer_rows": clean_timers,
+        })
 
-    save_config(self.config)
+        # Save widget coordinates and dimensions dynamically without overriding visibility states destructively
+        for key, (widget, _, saves_size) in self.widgets.items():
+            self.config[f"{key}_pos"] = [widget.x(), widget.y()]
+            if saves_size:
+                self.config[f"{key}_size"] = [widget.width(), widget.height()]
+
+        save_config(self.config)
 
 
 if __name__ == "__main__":
-  app = QApplication(sys.argv)
-  app.setQuitOnLastWindowClosed(False)
-  app.setStyleSheet(MODERN_DARK_STYLESHEET)
+    app = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)
+    app.setStyleSheet(MODERN_DARK_STYLESHEET)
 
-  main_app = MainAppController()
-  sys.exit(app.exec())
+    main_app = MainAppController()
+
+    sys.exit(app.exec())
