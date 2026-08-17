@@ -1,66 +1,85 @@
+<div align="center">
+
 # PokePal
 
 ![Python](https://img.shields.io/badge/Python-3.14-blue)
 ![PyQt6](https://img.shields.io/badge/PyQt6-UI-green)
 ![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey)
 
-A lightweight, standalone desktop overlay application designed to enhance your PokeMMO experience by providing quick access to essential tools and calculators without needing to tab out of the game.
+*A lightweight, standalone desktop overlay application designed to enhance your PokeMMO experience by providing quick access to essential tools and calculators without needing to tab out of the game.*
 
----
+## ✨ Features
 
-## ✨ Widgets
+**Pokédex:**  
+*Search for any Pokémon to view base stats, abilities, evolutions, and move sets. You can also filter encounter locations—perfect for shiny hunts!*
 
-* **Pokédex:** Search for any Pokémon to view base stats, abilities, evolution lines, and learnsets. You can also filter encounter data by region, location, level, season, time of day, and type (Horde, Lure, etc.).
+**Easy Tracking:**  
+*Customisable counters for tracking in-game stats like boxes sold or alphas caught. Simply use your mouse scroll wheel to adjust counts instantly.*
 
-* **Easy Tracking:** Customizable counters for tracking in-game stats like boxes sold or alphas caught (use your mouse scroll wheel to adjust counts instantly).
+**Breeding Calculator:**  
+*Fully simulate your egg outcomes by inputting the parents' information. Includes compatibility checks for the parents to ensure successful breeding.*
 
-* **Breeding Calculator:** Simulate breeding outcomes to calculate offspring stats, nature inheritance, and individual values (IVs).
+**Matchup Calculator:**  
+*Select up to 2 types to instantly view damage multipliers, weaknesses, resistances, and immunities.*
 
-* **Matchup Calculator:** Select types to instantly view damage multipliers, weaknesses, resistances, and immunities.
+**Timers:**  
+*Fully customise and keep track of timed events like gym reruns, berry farming, and more.*
 
-* **Timers:** Keep track of daily and hourly tasks like gym reruns and berry farming.
+**Notepad:**  
+*A simple notepad widget perfect for writing notes or even reading a guide without the need for multiple apps.*
 
-* **Notepad:** A quick sticky note for jotting down reminders on the fly.
+</div>
 
----
+<div align="center">
 
 ## 📸 Preview
 
-<img width="1911" height="1016" alt="image" src="https://github.com/user-attachments/assets/c210420a-ab66-4e6b-b981-842bc7704568" />
+<img width="100%" alt="PokePal Preview" src="https://github.com/user-attachments/assets/c210420a-ab66-4e6b-b981-842bc7704568" />
 
+## 🚀 Installation & Setup
+
+</div>
+
+1. Head over to the repository **[Releases](releases)** page.
+2. Download the latest `.zip` and extract the folder to your computer.
+3. Open the extracted folder `pokepal1.1`and double-click `pokepal1.1.exe` to launch the application.
+
+> ⚠️ **Important**  
+> Ensure the `data` folder remains in the same directory as your `pokepal1.1.exe` The `config.json` configuration file will automatically generate on your first launch.
+
+```
+ 📂 pokepal1.1/
+├── 📂 data/ ........... (Sprites and info needed for the pokedex, matchup, and breeding calculators.)
+├── 📄 pokepal1.1.exe .. (The app itself, compiled from source code using Pyinstaller.)
+└── 📄 config.json ..... (Auto-saves your widget layout, sizes, and positions ready for your next session.)
+```
 ---
 
-## 🚀 Get Started
-
-1. Head over to the **[Releases](../../releases)** page of this repository.
-2. Download the latest release `.zip` archive.
-
-<img width="182" height="70" alt="image" src="https://github.com/user-attachments/assets/302741ea-5d9c-4e7f-af0f-e0d5471f12d2" />
-
-4. Extract the contents to a folder of your choice on your computer.
-5. Double-click `pokepal1.1.exe` to launch the application.
-
-> **⚠️ Important:** *Ensure the `data` folder stays in the same directory alongside `pokepal1.1.exe`, `config.json` will be automatically created when you first start the app.*
-
-<img width="163" height="122" alt="image" src="https://github.com/user-attachments/assets/e706ada4-a582-41eb-93b0-06ef67d5e3d2" />
-
-
-alternatively you can run from Source *(Requires Python 3.14 and PyQt6)*
-
----
+<div align="center">
 
 ## 🧠 Why I Built It
 
-> *I was tired of constantly having to tab out of PokeMMO to check encounters, look up moves, calculate breeding stats, or keep track of manual hunts and timers.*
+</div>
+
+> I was tired of constantly having to tab out of PokeMMO to check encounters, look up moves, calculate breeding stats, or losing track of hunts and timers.
 > 
-> *The goal was to create a lightweight, community-friendly companion that puts everything you need right in one place without cluttering your workflow, modifying game files, or risking your account. It is designed to keep you immersed in the game without needing multiple tabs open.*
+> The goal was to create a lightweight, community-friendly companion that puts everything you need right in one place without cluttering your screen, modifying game files, or risking your account. It is designed to keep you immersed in the game without needing multiple tabs open.
 
 ---
 
-🛡️ Completely Safe & Independent
+<div align="center">
+    
+## 🛡️ Safety & Technical Details
 
-    Independent Companion: PokePal runs entirely as a separate application and never hooks into the PokeMMO game client, system memory, or Windows processes.
+</div>
 
-    Seamless Overlay UI: Built with PyQt6 to sit on top of your desktop, with all features and interactions handled cleanly through standard mouse actions.
+*PokePal is designed from the ground up to be **completely safe, independent, and compliant** with community standards:*
 
-    Local Storage: All data, notes, and information are stored securely on your own machine via lightweight JSON files.
+**Independent Companion:**  
+*PokePal runs entirely as a separate application. It never hooks into the PokeMMO game client, reads system memory, or interferes with Windows processes.*
+
+**Seamless Overlay UI:**  
+*Built with PyQt6 to sit neatly on top of your desktop, ensuring all features and interactions are handled cleanly through standard mouse actions.*
+
+**Local Storage:**  
+*Your data stays yours. All configuration files, notes, and information are stored securely on your own machine via lightweight local JSON files.*
