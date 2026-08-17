@@ -58,8 +58,6 @@ alternatively you can run from Source *(Requires Python 3.14 and PyQt6)*
 
     Independent Companion: PokePal runs entirely as a separate application and never hooks into the PokeMMO game client, system memory, or Windows processes.
 
-    Seamless Overlay UI: Built with PyQt6 to sit alongside your game, with all features and interactions handled cleanly through standard mouse actions.
+    Seamless Overlay UI: Built with PyQt6 to sit on top of your desktop, with all features and interactions handled cleanly through standard mouse actions.
 
     Local Storage: All data, notes, and information are stored securely on your own machine via lightweight JSON files.
-
-    100% Offline: Operates entirely offline with no internet connection or external servers required, keeping everything local to your computer.
