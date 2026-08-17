@@ -38,7 +38,7 @@ A lightweight, standalone desktop overlay application designed to enhance your P
 <img width="182" height="70" alt="image" src="https://github.com/user-attachments/assets/302741ea-5d9c-4e7f-af0f-e0d5471f12d2" />
 
 4. Extract the contents to a folder of your choice on your computer.
-5. Double-click `pokepal.exe` to launch the application.
+5. Double-click `pokepal1.1.exe` to launch the application.
 
 > **⚠️ Important:** Ensure the **`data/`** folder stays in the same directory right alongside `pokepal.exe`.
 
