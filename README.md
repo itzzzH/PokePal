@@ -6,7 +6,7 @@
 ![PyQt6](https://img.shields.io/badge/PyQt6-UI-green)
 ![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey)
 
-*A lightweight, standalone desktop overlay application designed to enhance your PokeMMO experience by providing quick access to essential tools and calculators without needing to tab out of the game.*
+*A lightweight, stand-alone desktop overlay application designed to enhance your PokeMMO experience by providing quick access to essential tools and calculators without needing to tab out of the game.*
 
 ## ✨ Features
 
@@ -19,7 +19,7 @@
 **Breeding Calculator:**  
 *Fully simulate your egg outcomes by inputting the parents' information. Includes compatibility checks for the parents to ensure successful breeding.*
 
-**Matchup Calculator:**  
+**Match-up Calculator:**  
 *Select up to 2 types to instantly view damage multipliers, weaknesses, resistances, and immunities.*
 
 **Timers:**  
@@ -41,8 +41,11 @@
 </div>
 
 1. Head over to the repository **[Releases](releases)** page.
-2. Download the latest `.zip` and extract the folder to your computer.
+2. Download the latest `pokepal1.1.zip` and extract the folder to your computer.
 3. Open the extracted folder `pokepal1.1`and double-click `pokepal1.1.exe` to launch the application.
+Your all set!
+
+>*Alternatively you can run from source (requires python 3.14 & pyQt6 installed)*
 
 > ⚠️ **Important**  
 > Ensure the `data` folder remains in the same directory as your `pokepal1.1.exe` The `config.json` configuration file will automatically generate on your first launch.
