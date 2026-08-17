@@ -40,7 +40,9 @@ A lightweight, standalone desktop overlay application designed to enhance your P
 4. Extract the contents to a folder of your choice on your computer.
 5. Double-click `pokepal1.1.exe` to launch the application.
 
-> **⚠️ Important:** Ensure the **`data`** folder stays in the same directory right alongside `pokepal1.1.exe`.
+> **⚠️ Important:** Ensure the **`data`** folder stays in the same directory alongside `pokepal1.1.exe`.
+<img width="163" height="122" alt="image" src="https://github.com/user-attachments/assets/e706ada4-a582-41eb-93b0-06ef67d5e3d2" />
+
 
 alternatively you can run from Source *(Requires Python 3.14 and PyQt6)*
 
