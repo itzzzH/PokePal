@@ -34,6 +34,7 @@ A lightweight, standalone desktop overlay application designed to enhance your P
 
 1. Head over to the **[Releases](../../releases)** page of this repository.
 2. Download the latest release `.zip` archive.
+<img width="182" height="70" alt="image" src="https://github.com/user-attachments/assets/302741ea-5d9c-4e7f-af0f-e0d5471f12d2" />
 3. Extract the contents to a folder of your choice on your computer.
 4. Double-click `pokepal.exe` to launch the application.
 
