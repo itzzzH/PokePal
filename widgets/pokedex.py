@@ -484,8 +484,22 @@ class PokedexWidget(BaseOverlay):
                 lvl_str = f"{min_lvl}" if min_lvl == max_lvl else f"{min_lvl}-{max_lvl}" if min_lvl != "?" else str(min_lvl)
 
                 horde_scale = enc.get("hordeRateScale", 20)
-                is_horde = enc.get("horde3", False) or enc.get("horde5", False) or "horde" in m_type.lower()
+                is_horde3 = enc.get("horde3", False)
+                is_horde5 = enc.get("horde5", False)
+                is_horde = is_horde3 or is_horde5 or "horde" in m_type.lower()
                 is_sweet = "sweet scent" in m_type.lower()
+
+                # Automatically differentiate between 3x horde, 5x horde, or fallback general horde formatting
+                if is_horde3:
+                    if "horde" not in m_type.lower():
+                        m_type = "3x Horde"
+                    else:
+                        m_type = m_type.replace("Horde", "3x Horde")
+                elif is_horde5:
+                    if "horde" not in m_type.lower():
+                        m_type = "5x Horde"
+                    else:
+                        m_type = m_type.replace("Horde", "5x Horde")
 
                 morning_rate = format_rate(enc.get("morning"), is_horde, is_sweet, horde_scale)
                 day_rate = format_rate(enc.get("day"), is_horde, is_sweet, horde_scale)
