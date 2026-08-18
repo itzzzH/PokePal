@@ -26,7 +26,11 @@ class BaseOverlay(QWidget):
 
     def mouseMoveEvent(self, event):
         if event.buttons() == Qt.MouseButton.LeftButton:
-            self.move(event.globalPosition().toPoint() - self.drag_position)
+            window = self.windowHandle()
+            if window is not None:
+                window.startSystemMove()
+            else:
+                self.move(event.globalPosition().toPoint() - self.drag_position)
             event.accept()
 
     def contextMenuEvent(self, event):
