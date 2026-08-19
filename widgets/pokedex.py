@@ -1,25 +1,51 @@
 # widgets/pokedex.py
 import os
+import math
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap, QPixmapCache
 from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, 
-    QFrame, QGroupBox, QSizeGrip, QProgressBar, QCompleter, QTextEdit, QWidget
+    QFrame, QGroupBox, QSizeGrip, QProgressBar, QCompleter, QTextEdit,
+    QWidget, QGridLayout, QSpinBox
 )
 from core.base_overlay import BaseOverlay
-from core.utils import format_rate
 import data_manager
+from globals import NATURES_LIST
 
 class PokedexWidget(BaseOverlay):
     MODES = ["Front", "Back", "Shiny"]
+
+    @staticmethod
+    def get_nature_modifiers(nature_name):
+        """
+        Derives stat buffs and nerfs dynamically using the standard 
+        Pokémon nature order stored in NATURES_LIST from globals.py.
+        """
+        if nature_name not in NATURES_LIST:
+            return {"up": None, "down": None}
+        
+        idx = NATURES_LIST.index(nature_name)
+        
+        if idx % 6 == 0:
+            return {"up": None, "down": None}
+        
+        stats_order = ["Attack", "Defense", "Speed", "Special Attack", "Special Defense"]
+        
+        up_idx = idx // 5
+        up_stat = stats_order[up_idx]
+        
+        local_idx = idx % 5
+        rem_idx = local_idx - 1 if local_idx > up_idx else local_idx
+        remaining_stats = [s for j, s in enumerate(stats_order) if j != up_idx]
+        down_stat = remaining_stats[rem_idx]
+        
+        return {"up": up_stat, "down": down_stat}
 
     def __init__(self, main_app):
         super().__init__("Pokedex", main_app)
         self.current_id = 1
         self.sprite_mode = 0
-        self.selected_season = "All Seasons"
-        self.selected_encounter_type = "All Encounters"
-        self.active_view = "locations"
+        self.active_view = "calculator"
 
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(4, 4, 4, 4)
@@ -144,7 +170,7 @@ class PokedexWidget(BaseOverlay):
             
         self.c_layout.addWidget(stats_box)
         
-        filters_box = QGroupBox("Encounters & Info Options")
+        filters_box = QGroupBox("View Options")
         f_layout = QVBoxLayout(filters_box)
         f_layout.setContentsMargins(6, 6, 6, 6)
         f_layout.setSpacing(4)
@@ -171,77 +197,189 @@ class PokedexWidget(BaseOverlay):
         
         view_row = QHBoxLayout()
         view_row.setSpacing(4)
-        self.btn_view_loc = QPushButton("Locations")
-        self.btn_view_loc.setCheckable(True)
-        self.btn_view_loc.setChecked(True)
-        self.btn_view_loc.setMinimumHeight(28)
-        self.btn_view_loc.setStyleSheet(self.filter_btn_style)
-        self.btn_view_loc.clicked.connect(lambda: self.switch_view("locations"))
         
+        # Stat Calculator on the left, Moves on the right
+        self.btn_view_calc = QPushButton("Stat Calculator")
+        self.btn_view_calc.setCheckable(True)
+        self.btn_view_calc.setChecked(True)
+        self.btn_view_calc.setMinimumHeight(28)
+        self.btn_view_calc.setStyleSheet(self.filter_btn_style)
+        self.btn_view_calc.clicked.connect(lambda: self.switch_view("calculator"))
+
         self.btn_view_mov = QPushButton("Moves / Learnset")
         self.btn_view_mov.setCheckable(True)
+        self.btn_view_mov.setChecked(False)
         self.btn_view_mov.setMinimumHeight(28)
         self.btn_view_mov.setStyleSheet(self.filter_btn_style)
         self.btn_view_mov.clicked.connect(lambda: self.switch_view("moves"))
         
-        view_row.addWidget(self.btn_view_loc)
+        view_row.addWidget(self.btn_view_calc)
         view_row.addWidget(self.btn_view_mov)
         f_layout.addLayout(view_row)
 
-        self.season_widget_container = QWidget()
-        season_row = QHBoxLayout(self.season_widget_container)
-        season_row.setContentsMargins(0, 0, 0, 0)
-        season_row.setSpacing(2)
-        season_lbl = QLabel("Season:")
-        season_lbl.setStyleSheet("color: #A0A0B0; font-size: 10px;")
-        season_row.addWidget(season_lbl)
-        
-        self.season_buttons = {}
-        seasons = ["All Seasons", "Spring", "Summer", "Autumn", "Winter"]
-        for s in seasons:
-            btn = QPushButton(s)
-            btn.setMinimumHeight(26)
-            btn.setCheckable(True)
-            btn.setStyleSheet(self.filter_btn_style)
-            if s == self.selected_season: btn.setChecked(True)
-            btn.clicked.connect(lambda checked, val=s: self.set_season_filter(val))
-            season_row.addWidget(btn)
-            self.season_buttons[s] = btn
-        f_layout.addWidget(self.season_widget_container)
-
-        self.encounter_widget_container = QWidget()
-        enc_row = QHBoxLayout(self.encounter_widget_container)
-        enc_row.setContentsMargins(0, 0, 0, 0)
-        enc_row.setSpacing(2)
-        enc_lbl = QLabel("Type:")
-        enc_lbl.setStyleSheet("color: #A0A0B0; font-size: 10px;")
-        enc_row.addWidget(enc_lbl)
-        
-        self.enc_buttons = {}
-        enc_types = ["All Encounters", "Normal / Grass", "Horde Only", "Lure Only"]
-        for et in enc_types:
-            btn = QPushButton(et)
-            btn.setMinimumHeight(26)
-            btn.setCheckable(True)
-            btn.setStyleSheet(self.filter_btn_style)
-            if et == self.selected_encounter_type: btn.setChecked(True)
-            btn.clicked.connect(lambda checked, val=et: self.set_encounter_filter(val))
-            enc_row.addWidget(btn)
-            self.enc_buttons[et] = btn
-        f_layout.addWidget(self.encounter_widget_container)
-
         self.c_layout.addWidget(filters_box)
         
-        loc_box = QGroupBox("Data Display")
-        l_layout = QVBoxLayout(loc_box)
-        l_layout.setContentsMargins(2, 2, 2, 2)
+        # Display Area Container supporting both Stat Calculator and Moves views
+        self.display_container = QWidget()
+        self.display_layout = QVBoxLayout(self.display_container)
+        self.display_layout.setContentsMargins(0, 0, 0, 0)
+        self.display_layout.setSpacing(0)
+
+        # Calculator View Widget (Set on the left / default active)
+        self.calc_widget = QWidget()
+        c_outer_layout = QVBoxLayout(self.calc_widget)
+        c_outer_layout.setContentsMargins(0, 0, 0, 0)
+        c_outer_layout.setSpacing(4)
+
+        settings_box = QGroupBox("Configuration")
+        settings_box.setStyleSheet(self._box_style())
+        s_config_layout = QGridLayout(settings_box)
+        s_config_layout.setContentsMargins(8, 6, 8, 6)
+        s_config_layout.setHorizontalSpacing(10)
+        s_config_layout.setVerticalSpacing(4)
+
+        s_config_layout.addWidget(QLabel("Level:"), 0, 0)
+        self.level_spin = QSpinBox()
+        self.level_spin.setRange(1, 100)
+        self.level_spin.setValue(50)
+        self.level_spin.setStyleSheet(self._input_style())
+        self.level_spin.valueChanged.connect(self.calculate_stats)
+        s_config_layout.addWidget(self.level_spin, 0, 1)
+
+        s_config_layout.addWidget(QLabel("Nature:"), 0, 2)
+        self.nature_input = QLineEdit()
+        self.nature_input.setText("Hardy")
+        self.nature_input.setPlaceholderText("Nature name")
+        self.nature_input.setStyleSheet(self._input_style())
+        
+        if NATURES_LIST:
+            nature_completer = QCompleter(NATURES_LIST, self.nature_input)
+            nature_completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+            nature_completer.setCompletionMode(QCompleter.CompletionMode.PopupCompletion)
+            self.nature_input.setCompleter(nature_completer)
+            
+        self.nature_input.textChanged.connect(self.calculate_stats)
+        s_config_layout.addWidget(self.nature_input, 0, 3)
+        c_outer_layout.addWidget(settings_box)
+
+        stats_calc_box = QGroupBox("Stat Breakdown & Builder")
+        stats_calc_box.setStyleSheet(self._box_style())
+        st_layout = QVBoxLayout(stats_calc_box)
+        st_layout.setContentsMargins(6, 6, 6, 6)
+        st_layout.setSpacing(4)
+
+        self.stat_rows = {}
+        stat_names = [
+            ("hp", "HP"), 
+            ("attack", "Attack"), 
+            ("defense", "Defense"), 
+            ("sp_atk", "Sp. Atk"), 
+            ("sp_def", "Sp. Def"), 
+            ("speed", "Speed")
+        ]
+
+        for key, label in stat_names:
+            row_frame = QFrame()
+            row_frame.setStyleSheet("""
+                QFrame {
+                    background-color: #17171D;
+                    border: 1px solid #282835;
+                    border-radius: 5px;
+                    padding: 2px;
+                }
+            """)
+            row_layout = QHBoxLayout(row_frame)
+            row_layout.setContentsMargins(6, 2, 6, 2)
+            row_layout.setSpacing(6)
+
+            lbl_name = QLabel(label)
+            lbl_name.setFixedSize(52, 20)
+            lbl_name.setStyleSheet("color: #90CDF4; font-size: 10px; font-weight: bold; border: none; background: transparent;")
+            row_layout.addWidget(lbl_name)
+
+            row_layout.addWidget(QLabel("Base:"))
+            base_spin = QSpinBox()
+            base_spin.setRange(1, 255)
+            base_spin.setValue(45)
+            base_spin.setFixedWidth(42); base_spin.setFixedHeight(22)
+            base_spin.setStyleSheet(self._input_style())
+            base_spin.valueChanged.connect(self.calculate_stats)
+            row_layout.addWidget(base_spin)
+
+            row_layout.addWidget(QLabel("IV:"))
+            iv_spin = QSpinBox()
+            iv_spin.setRange(0, 31)
+            iv_spin.setValue(31)
+            iv_spin.setFixedWidth(38); iv_spin.setFixedHeight(22)
+            iv_spin.setStyleSheet(self._input_style())
+            iv_spin.valueChanged.connect(self.calculate_stats)
+            row_layout.addWidget(iv_spin)
+
+            row_layout.addWidget(QLabel("EV:"))
+            ev_spin = QSpinBox()
+            ev_spin.setRange(0, 252)
+            ev_spin.setValue(252 if key in ["hp", "attack", "sp_atk", "speed"] else 0)
+            ev_spin.setFixedWidth(44); ev_spin.setFixedHeight(22)
+            ev_spin.setStyleSheet(self._input_style())
+            ev_spin.valueChanged.connect(self.calculate_stats)
+            row_layout.addWidget(ev_spin)
+
+            row_layout.addStretch()
+
+            lbl_result = QLabel("0")
+            lbl_result.setFixedWidth(45)
+            lbl_result.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            lbl_result.setStyleSheet("color: #3B82F6; font-size: 11px; font-weight: bold; border: none; background: #111116; border-radius: 3px;")
+            row_layout.addWidget(lbl_result)
+
+            self.stat_rows[key] = {
+                "base": base_spin, 
+                "iv": iv_spin, 
+                "ev": ev_spin, 
+                "result": lbl_result
+            }
+            st_layout.addWidget(row_frame)
+
+        # Totals Summary Bar
+        totals_frame = QFrame()
+        totals_frame.setStyleSheet("background: #14141A; border: 1px solid #2E2E3C; border-radius: 5px;")
+        t_layout = QHBoxLayout(totals_frame)
+        t_layout.setContentsMargins(8, 4, 8, 4)
+        
+        t_layout.addWidget(QLabel("<b style='color: #A0A0B2; font-size: 10px;'>TOTALS:</b>"))
+        t_layout.addStretch()
+        self.total_base_lbl = QLabel("Base: 0")
+        self.total_base_lbl.setStyleSheet("color: #D2D2E0; font-size: 10px; font-weight: bold; border: none;")
+        t_layout.addWidget(self.total_base_lbl)
+        
+        t_layout.addWidget(QLabel("<span style='color: #444455;'>|</span>"))
+        
+        self.total_final_lbl = QLabel("Final: 0")
+        self.total_final_lbl.setStyleSheet("color: #3B82F6; font-size: 10px; font-weight: bold; border: none;")
+        t_layout.addWidget(self.total_final_lbl)
+
+        st_layout.addWidget(totals_frame)
+        c_outer_layout.addWidget(stats_calc_box)
+        self.display_layout.addWidget(self.calc_widget)
+
+        # Moves View Widget (On the right)
+        self.moves_widget = QWidget()
+        m_layout = QVBoxLayout(self.moves_widget)
+        m_layout.setContentsMargins(0, 0, 0, 0)
+        moves_box = QGroupBox("Moves / Learnset")
+        moves_box.setStyleSheet(self._box_style())
+        mb_layout = QVBoxLayout(moves_box)
+        mb_layout.setContentsMargins(2, 2, 2, 2)
         
         self.location_text_area = QTextEdit()
         self.location_text_area.setReadOnly(True)
         self.location_text_area.setStyleSheet("background: #141418; border: none; color: #E2E2E8; font-size: 11px;")
-        l_layout.addWidget(self.location_text_area)
-        self.c_layout.addWidget(loc_box, 1)
+        mb_layout.addWidget(self.location_text_area)
+        m_layout.addWidget(moves_box)
+        self.moves_widget.setVisible(False)
+        self.display_layout.addWidget(self.moves_widget)
 
+        self.c_layout.addWidget(self.display_container, 1)
         self.layout.addWidget(self.container)
 
         if "pokedex_pos" in self.main_app.config:
@@ -257,30 +395,34 @@ class PokedexWidget(BaseOverlay):
         self.size_grip.setStyleSheet("background: transparent; width: 14px; height: 14px;")
         self.load_pokemon_data(1)
 
+    @staticmethod
+    def _box_style():
+        return """
+            QGroupBox { color: #8F8FA8; font-size: 10px; font-weight: bold; border: 1px solid #282836; border-radius: 6px; margin-top: 4px; padding-top: 8px; }
+            QGroupBox::title { subcontrol-origin: margin; left: 8px; padding: 0 3px; }
+        """
+
+    @staticmethod
+    def _input_style():
+        return """
+            QSpinBox, QLineEdit {
+                background-color: #111116; color: #E2E8F0;
+                border: 1px solid #2E2E3D; border-radius: 4px;
+                font-size: 10px; padding: 2px 4px;
+            }
+            QSpinBox::up-button, QSpinBox::down-button { width: 0px; }
+        """
+
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.size_grip.move(self.width() - 20, self.height() - 20)
 
     def switch_view(self, mode):
         self.active_view = mode
-        self.btn_view_loc.setChecked(mode == "locations")
+        self.btn_view_calc.setChecked(mode == "calculator")
         self.btn_view_mov.setChecked(mode == "moves")
-        is_loc = (mode == "locations")
-        self.season_widget_container.setVisible(is_loc)
-        self.encounter_widget_container.setVisible(is_loc)
-        self.load_pokemon_data(self.current_id)
-
-    def set_season_filter(self, val):
-        self.selected_season = val
-        for s, btn in self.season_buttons.items():
-            btn.setChecked(s == val)
-        self.load_pokemon_data(self.current_id)
-
-    def set_encounter_filter(self, val):
-        self.selected_encounter_type = val
-        for et, btn in self.enc_buttons.items():
-            btn.setChecked(et == val)
-        self.load_pokemon_data(self.current_id)
+        self.calc_widget.setVisible(mode == "calculator")
+        self.moves_widget.setVisible(mode == "moves")
 
     def cycle_sprite_mode(self, event=None):
         self.sprite_mode = (self.sprite_mode + 1) % 3
@@ -305,7 +447,6 @@ class PokedexWidget(BaseOverlay):
             self.load_pokemon_data(found_id)
 
     def load_sprite(self):
-        """Loads sprite pixmap (120x120) with QPixmapCache caching."""
         mode_str = self.MODES[self.sprite_mode].lower()
         cid = self.current_id
         cache_key = f"pokedex_sprite_{mode_str}_{cid}"
@@ -363,6 +504,53 @@ class PokedexWidget(BaseOverlay):
                         break
             bar.setValue(int(val))
 
+    def calculate_stats(self):
+        level = self.level_spin.value()
+        nature_name = self.nature_input.text().strip().title()
+        nature_info = self.get_nature_modifiers(nature_name)
+        
+        stat_full_names = {
+            "hp": "HP", "attack": "Attack", "defense": "Defense",
+            "sp_atk": "Special Attack", "sp_def": "Special Defense", "speed": "Speed"
+        }
+
+        total_base = 0
+        total_final = 0
+
+        for key, widgets in self.stat_rows.items():
+            base = widgets["base"].value()
+            iv = widgets["iv"].value()
+            ev = widgets["ev"].value()
+
+            total_base += base
+
+            if key == "hp":
+                if base == 1:
+                    final_val = 1
+                else:
+                    ev_bonus = ev // 4
+                    core = 2 * base + iv + ev_bonus
+                    final_val = ((core * level) // 100) + level + 10
+            else:
+                ev_bonus = ev // 4
+                core = 2 * base + iv + ev_bonus
+                base_calc = ((core * level) // 100) + 5
+                
+                multiplier = 1.0
+                full_name = stat_full_names.get(key)
+                if nature_info.get("up") == full_name:
+                    multiplier = 1.1
+                elif nature_info.get("down") == full_name:
+                    multiplier = 0.9
+
+                final_val = math.floor(base_calc * multiplier)
+
+            total_final += final_val
+            widgets["result"].setText(f"{final_val}")
+
+        self.total_base_lbl.setText(f"Base: {total_base}")
+        self.total_final_lbl.setText(f"Final: {total_final}")
+
     def load_pokemon_data(self, poke_id):
         self.current_id = int(poke_id)
         entry = data_manager.MASTER_DEX_DB.get(str(self.current_id))
@@ -389,6 +577,23 @@ class PokedexWidget(BaseOverlay):
         stats = entry.get("stats", {})
         self.update_stats_bars(stats)
 
+        stat_map_key = {
+            "hp": "hp", 
+            "attack": "attack", 
+            "defense": "defense",
+            "sp_attack": "sp_atk", 
+            "special-attack": "sp_atk",
+            "sp_defense": "sp_def", 
+            "special-defense": "sp_def",
+            "speed": "speed"
+        }
+        
+        for s_key, val in stats.items():
+            target_key = stat_map_key.get(s_key)
+            if target_key and target_key in self.stat_rows:
+                self.stat_rows[target_key]["base"].setValue(int(val))
+        self.calculate_stats()
+
         evolutions = entry.get("evolutions", [])
         unique_evos = []
         for evo in evolutions:
@@ -399,155 +604,70 @@ class PokedexWidget(BaseOverlay):
 
         self.load_sprite()
         
-        if self.active_view == "moves":
-            moves = entry.get("moves", entry.get("learnset", []))
-            if moves:
-                moves_html = """
-                <table width='100%' style='border-collapse: collapse;'>
-                    <thead>
-                        <tr style='color: #80A0FF; font-weight: bold; text-align: left;'>
-                            <th style='padding: 4px; border-bottom: 2px solid #3E3E50; text-align: center;'>Lvl</th>
-                            <th style='padding: 4px; border-bottom: 2px solid #3E3E50;'>Move Name</th>
-                            <th style='padding: 4px; border-bottom: 2px solid #3E3E50;'>Type</th>
-                            <th style='padding: 4px; border-bottom: 2px solid #3E3E50;'>Cat</th>
-                            <th style='padding: 4px; border-bottom: 2px solid #3E3E50; text-align: center;'>Pwr</th>
-                            <th style='padding: 4px; border-bottom: 2px solid #3E3E50; text-align: center;'>Acc</th>
-                            <th style='padding: 4px; border-bottom: 2px solid #3E3E50; text-align: center;'>PP</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                """
-                for idx, m in enumerate(moves):
-                    bg_color = "#1A1A22" if idx % 2 == 0 else "#14141A"
-                    if isinstance(m, dict):
-                        m_lvl = m.get("level", m.get("lvl", "-"))
-                        m_raw_name = m.get("name", m.get("move", "Unknown"))
-                    else:
-                        m_lvl = "-"
-                        m_raw_name = str(m)
-                    
-                    lookup_key = str(m_raw_name).lower().strip()
-                    lookup_key_hyphen = lookup_key.replace(" ", "-")
-                    m_db_info = data_manager.MOVES_DB.get(lookup_key) or data_manager.MOVES_DB.get(lookup_key_hyphen) or {}
-                    
-                    m_name = m_db_info.get("name", m_raw_name)
-                    if isinstance(m_name, str): m_name = m_name.title()
-                        
-                    m_type = str(m_db_info.get("type", m.get("type", "-"))).capitalize()
-                    raw_cat = m_db_info.get("damage_class", m_db_info.get("category", m.get("category", "-")))
-                    m_cat = str(raw_cat).capitalize()
-                    
-                    m_pwr = m_db_info.get("power", m.get("power", "-"))
-                    if m_pwr is None or m_pwr == "": m_pwr = "-"
-                        
-                    m_acc = m_db_info.get("accuracy", m.get("accuracy", "-"))
-                    if isinstance(m_acc, float) and m_acc <= 1.0: m_acc = f"{int(m_acc * 100)}%"
-                    elif isinstance(m_acc, (int, float)) and m_acc > 1.0: m_acc = f"{int(m_acc)}%"
-                    elif m_acc is None or m_acc == "": m_acc = "-"
-                        
-                    m_pp = m_db_info.get("pp", m.get("pp", "-"))
-                    if m_pp is None or m_pp == "": m_pp = "-"
-
-                    moves_html += f"""
-                        <tr style='background-color: {bg_color}; border-bottom: 1px solid #282834;'>
-                            <td style='padding: 4px; text-align: center; color: #A0C0E0;'>{m_lvl}</td>
-                            <td style='padding: 4px; font-weight: bold; color: #FFFFFF;'>{m_name}</td>
-                            <td style='padding: 4px; color: #90CDF4;'>{m_type}</td>
-                            <td style='padding: 4px; color: #D0D0DC;'>{m_cat}</td>
-                            <td style='padding: 4px; text-align: center; color: #FFAA00;'>{m_pwr}</td>
-                            <td style='padding: 4px; text-align: center; color: #55FF55;'>{m_acc}</td>
-                            <td style='padding: 4px; text-align: center; color: #8080FF;'>{m_pp}</td>
-                        </tr>
-                    """
-                moves_html += "</tbody></table>"
-            else:
-                moves_html = "<div style='color: #888899; padding: 10px; text-align: center;'>No move data available for this Pokémon.</div>"
-            self.location_text_area.setHtml(moves_html)
-        else:
-            poke_key = entry.get('_clean_name', '').lower()
-            encounters = data_manager.LOCATION_ENCOUNTERS_DB.get(poke_key, [])
-
-            rows_data = []
-            for enc in encounters:
-                if not isinstance(enc, dict): continue
-                season = str(enc.get("season", "Any"))
-                if self.selected_season != "All Seasons":
-                    if season != "Any" and self.selected_season.lower() not in season.lower():
-                        continue
-
-                region = str(enc.get("region", "Unknown")).title()
-                sub_area = str(enc.get("location", "Unknown Area")).title()
-                m_type = str(enc.get("type", "Grass")).capitalize()
+        moves = entry.get("moves", entry.get("learnset", []))
+        if moves:
+            moves_html = """
+            <table width='100%' style='border-collapse: collapse;'>
+                <thead>
+                    <tr style='color: #80A0FF; font-weight: bold; text-align: left;'>
+                        <th style='padding: 4px; border-bottom: 2px solid #3E3E50; text-align: center;'>Lvl</th>
+                        <th style='padding: 4px; border-bottom: 2px solid #3E3E50;'>Move Name</th>
+                        <th style='padding: 4px; border-bottom: 2px solid #3E3E50;'>Type</th>
+                        <th style='padding: 4px; border-bottom: 2px solid #3E3E50;'>Cat</th>
+                        <th style='padding: 4px; border-bottom: 2px solid #3E3E50; text-align: center;'>Pwr</th>
+                        <th style='padding: 4px; border-bottom: 2px solid #3E3E50; text-align: center;'>Acc</th>
+                        <th style='padding: 4px; border-bottom: 2px solid #3E3E50; text-align: center;'>PP</th>
+                    </tr>
+                </thead>
+                <tbody>
+            """
+            for idx, m in enumerate(moves):
+                bg_color = "#1A1A22" if idx % 2 == 0 else "#14141A"
+                if isinstance(m, dict):
+                    m_lvl = m.get("level", m.get("lvl", "-"))
+                    m_raw_name = m.get("name", m.get("move", "Unknown"))
+                else:
+                    m_lvl = "-"
+                    m_raw_name = str(m)
                 
-                min_lvl = enc.get("minLevel", "?")
-                max_lvl = enc.get("maxLevel", "?")
-                lvl_str = f"{min_lvl}" if min_lvl == max_lvl else f"{min_lvl}-{max_lvl}" if min_lvl != "?" else str(min_lvl)
+                lookup_key = str(m_raw_name).lower().strip()
+                lookup_key_hyphen = lookup_key.replace(" ", "-")
+                m_db_info = data_manager.MOVES_DB.get(lookup_key) or data_manager.MOVES_DB.get(lookup_key_hyphen) or {}
+                
+                m_name = m_db_info.get("name", m_raw_name)
+                if isinstance(m_name, str): m_name = m_name.title()
+                    
+                m_type = str(m_db_info.get("type", m.get("type", "-"))).capitalize()
+                raw_cat = m_db_info.get("damage_class", m_db_info.get("category", m.get("category", "-")))
+                m_cat = str(raw_cat).capitalize()
+                
+                m_pwr = m_db_info.get("power", m.get("power", "-"))
+                if m_pwr is None or m_pwr == "": m_pwr = "-"
+                    
+                m_acc = m_db_info.get("accuracy", m.get("accuracy", "-"))
+                if isinstance(m_acc, float) and m_acc <= 1.0: m_acc = f"{int(m_acc * 100)}%"
+                elif isinstance(m_acc, (int, float)) and m_acc > 1.0: m_acc = f"{int(m_acc)}%"
+                elif m_acc is None or m_acc == "": m_acc = "-"
+                    
+                m_pp = m_db_info.get("pp", m.get("pp", "-"))
+                if m_pp is None or m_pp == "": m_pp = "-"
 
-                horde_scale = enc.get("hordeRateScale", 20)
-                is_horde3 = enc.get("horde3", False)
-                is_horde5 = enc.get("horde5", False)
-                is_horde = is_horde3 or is_horde5 or "horde" in m_type.lower()
-                is_sweet = "sweet scent" in m_type.lower()
-
-                # Automatically differentiate between 3x horde, 5x horde, or fallback general horde formatting
-                if is_horde3:
-                    if "horde" not in m_type.lower():
-                        m_type = "3x Horde"
-                    else:
-                        m_type = m_type.replace("Horde", "3x Horde")
-                elif is_horde5:
-                    if "horde" not in m_type.lower():
-                        m_type = "5x Horde"
-                    else:
-                        m_type = m_type.replace("Horde", "5x Horde")
-
-                morning_rate = format_rate(enc.get("morning"), is_horde, is_sweet, horde_scale)
-                day_rate = format_rate(enc.get("day"), is_horde, is_sweet, horde_scale)
-                night_rate = format_rate(enc.get("night"), is_horde, is_sweet, horde_scale)
-
-                if self.selected_encounter_type == "Horde Only" and not is_horde: continue
-                if self.selected_encounter_type == "Lure Only" and "lure" not in m_type.lower(): continue
-
-                rows_data.append({"type": m_type, "region": region, "location": sub_area, "level": lvl_str, "morning": morning_rate, "day": day_rate, "night": night_rate})
-
-            if rows_data:
-                location_display_html = """
-                <table width='100%' style='border-collapse: collapse;'>
-                    <thead>
-                        <tr style='color: #80A0FF; font-weight: bold; text-align: left;'>
-                            <th style='padding: 4px; border-bottom: 2px solid #3E3E50;'>Type</th>
-                            <th style='padding: 4px; border-bottom: 2px solid #3E3E50;'>Region</th>
-                            <th style='padding: 4px; border-bottom: 2px solid #3E3E50;'>Location</th>
-                            <th style='padding: 4px; border-bottom: 2px solid #3E3E50; text-align: center;'>Lvl</th>
-                            <th style='padding: 4px; border-bottom: 2px solid #3E3E50; text-align: center;'>🌅</th>
-                            <th style='padding: 4px; border-bottom: 2px solid #3E3E50; text-align: center;'>☀️</th>
-                            <th style='padding: 4px; border-bottom: 2px solid #3E3E50; text-align: center;'>🌙</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                moves_html += f"""
+                    <tr style='background-color: {bg_color}; border-bottom: 1px solid #282834;'>
+                        <td style='padding: 4px; text-align: center; color: #A0C0E0;'>{m_lvl}</td>
+                        <td style='padding: 4px; font-weight: bold; color: #FFFFFF;'>{m_name}</td>
+                        <td style='padding: 4px; color: #90CDF4;'>{m_type}</td>
+                        <td style='padding: 4px; color: #D0D0DC;'>{m_cat}</td>
+                        <td style='padding: 4px; text-align: center; color: #FFAA00;'>{m_pwr}</td>
+                        <td style='padding: 4px; text-align: center; color: #55FF55;'>{m_acc}</td>
+                        <td style='padding: 4px; text-align: center; color: #8080FF;'>{m_pp}</td>
+                    </tr>
                 """
-                for idx, r in enumerate(rows_data):
-                    bg_color = "#1A1A22" if idx % 2 == 0 else "#14141A"
-                    m_color = "#FFAA00" if r['morning'] != "--" else "#666677"
-                    d_color = "#55FF55" if r['day'] != "--" else "#666677"
-                    n_color = "#8080FF" if r['night'] != "--" else "#666677"
-
-                    location_display_html += f"""
-                        <tr style='background-color: {bg_color}; border-bottom: 1px solid #282834;'>
-                            <td style='padding: 4px; font-weight: bold; color: #90CDF4;'>{r['type']}</td>
-                            <td style='padding: 4px; color: #D0D0DC;'>{r['region']}</td>
-                            <td style='padding: 4px; font-weight: bold; color: #FFFFFF;'>{r['location']}</td>
-                            <td style='padding: 4px; text-align: center; color: #A0C0E0;'>{r['level']}</td>
-                            <td style='padding: 4px; text-align: center; color: {m_color}; font-weight: bold;'>{r['morning']}</td>
-                            <td style='padding: 4px; text-align: center; color: {d_color}; font-weight: bold;'>{r['day']}</td>
-                            <td style='padding: 4px; text-align: center; color: {n_color}; font-weight: bold;'>{r['night']}</td>
-                        </tr>
-                    """
-                location_display_html += "</tbody></table>"
-            else:
-                location_display_html = "<div style='color: #888899; padding: 10px; text-align: center;'>No locations found matching filter criteria.</div>"
-
-            self.location_text_area.setHtml(location_display_html)
+            moves_html += "</tbody></table>"
+        else:
+            moves_html = "<div style='color: #888899; padding: 10px; text-align: center;'>No move data available for this Pokémon.</div>"
+        
+        self.location_text_area.setHtml(moves_html)
 
         self.name_lbl.setText(name_str)
         self.type_lbl.setText(types_str)

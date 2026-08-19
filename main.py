@@ -15,6 +15,7 @@ from widgets.timers import TimersWidget
 from widgets.weakness import WeaknessWidget
 from widgets.settings import SettingsWindow
 from widgets.stickynotes import NotepadWidget
+from widgets.locations import LocationsWidget
 
 
 class MainAppController:
@@ -55,6 +56,7 @@ class MainAppController:
             "timers": (TimersWidget(self), False, True),
             "weakness": (WeaknessWidget(self), False, True),
             "sticky_note": (NotepadWidget(self), False, True),
+            "locations": (LocationsWidget(self), False, True),
         }
 
         # Instance attribute mapping for backwards compatibility
@@ -65,6 +67,7 @@ class MainAppController:
         self.timers = self.widgets["timers"][0]
         self.weakness = self.widgets["weakness"][0]
         self.notepad = self.widgets["sticky_note"][0]
+        self.locations = self.widgets["locations"][0]
         self.settings_window = None
 
         # Apply counter & timer styling
@@ -104,6 +107,7 @@ class MainAppController:
     def toggle_timers(self): self.toggle_widget("timers")
     def toggle_weakness(self): self.toggle_widget("weakness")
     def toggle_notepad(self): self.toggle_widget("sticky_note")
+    def toggle_locations(self): self.toggle_widget("locations")
 
     def open_settings(self):
         if self.settings_window is None:

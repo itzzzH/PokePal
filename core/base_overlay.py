@@ -45,6 +45,7 @@ class BaseOverlay(QWidget):
                 ("Toggle Timers", getattr(self.main_app, "toggle_timers", None)),
                 ("Toggle Notes", getattr(self.main_app, "toggle_notepad", None) or getattr(self.main_app, "toggle_notes", None)),
                 ("Toggle Pokédex", getattr(self.main_app, "toggle_pokedex", None)),
+                ("Toggle Locations", getattr(self.main_app, "toggle_locations", None)),
                 ("Toggle Breeding Calculator", getattr(self.main_app, "toggle_breeding", None)),
                 ("Toggle Matchup Calculator", getattr(self.main_app, "toggle_weakness", None) or getattr(self.main_app, "toggle_matchup", None)),
             ]

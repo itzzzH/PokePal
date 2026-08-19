@@ -9,45 +9,10 @@ from PyQt6.QtWidgets import (
 )
 from core.base_overlay import BaseOverlay
 import data_manager
+from globals import TYPES, TYPE_COLORS, CHART
 
 
 class WeaknessWidget(BaseOverlay):
-    TYPES = [
-        "Normal", "Fire", "Water", "Grass", "Electric", "Ice", 
-        "Fighting", "Poison", "Ground", "Flying", "Psychic", "Bug", 
-        "Rock", "Ghost", "Dragon", "Dark", "Steel", "Fairy"
-    ]
-
-    TYPE_COLORS = {
-        "Normal": "#95956C", "Fire": "#FF9933", "Water": "#3399FF", 
-        "Grass": "#33CC33", "Electric": "#FFCC00", "Ice": "#66CCFF", 
-        "Fighting": "#CC3300", "Poison": "#9933CC", "Ground": "#CC9933", 
-        "Flying": "#6699CC", "Psychic": "#FF3399", "Bug": "#A6B91A", 
-        "Rock": "#B8A038", "Ghost": "#705898", "Dragon": "#7038F8", 
-        "Dark": "#705848", "Steel": "#B8B8D0", "Fairy": "#EE99AC"
-    }
-
-    CHART = {
-        "Normal": {"Rock": 0.5, "Ghost": 0.0, "Steel": 0.5},
-        "Fire": {"Fire": 0.5, "Water": 0.5, "Grass": 2.0, "Ice": 2.0, "Bug": 2.0, "Rock": 0.5, "Dragon": 0.5, "Steel": 2.0},
-        "Water": {"Fire": 2.0, "Water": 0.5, "Grass": 0.5, "Ground": 2.0, "Rock": 2.0, "Dragon": 0.5},
-        "Grass": {"Fire": 0.5, "Water": 2.0, "Grass": 0.5, "Poison": 0.5, "Ground": 2.0, "Flying": 0.5, "Bug": 0.5, "Rock": 2.0, "Dragon": 0.5, "Steel": 0.5},
-        "Electric": {"Water": 2.0, "Grass": 0.5, "Electric": 0.5, "Ground": 0.0, "Flying": 2.0, "Dragon": 0.5},
-        "Ice": {"Fire": 0.5, "Water": 0.5, "Grass": 2.0, "Ground": 2.0, "Flying": 2.0, "Dragon": 2.0, "Steel": 0.5, "Ice": 0.5},
-        "Fighting": {"Normal": 2.0, "Ice": 2.0, "Poison": 0.5, "Flying": 0.5, "Psychic": 0.5, "Bug": 0.5, "Rock": 2.0, "Ghost": 0.0, "Dark": 2.0, "Steel": 2.0, "Fairy": 0.5},
-        "Poison": {"Grass": 2.0, "Poison": 0.5, "Ground": 0.5, "Rock": 0.5, "Ghost": 0.5, "Steel": 0.0, "Fairy": 2.0},
-        "Ground": {"Fire": 2.0, "Grass": 0.5, "Electric": 2.0, "Poison": 2.0, "Flying": 0.0, "Bug": 0.5, "Rock": 2.0, "Steel": 2.0},
-        "Flying": {"Grass": 2.0, "Electric": 0.5, "Fighting": 2.0, "Bug": 2.0, "Rock": 0.5, "Steel": 0.5},
-        "Psychic": {"Fighting": 2.0, "Poison": 2.0, "Psychic": 0.5, "Dark": 0.0, "Steel": 0.5},
-        "Bug": {"Fire": 0.5, "Grass": 2.0, "Fighting": 0.5, "Poison": 0.5, "Flying": 0.5, "Psychic": 2.0, "Ghost": 0.5, "Dark": 2.0, "Steel": 0.5, "Fairy": 0.5},
-        "Rock": {"Fire": 2.0, "Ice": 2.0, "Fighting": 0.5, "Ground": 0.5, "Flying": 2.0, "Bug": 2.0, "Steel": 0.5},
-        "Ghost": {"Normal": 0.0, "Psychic": 2.0, "Ghost": 2.0, "Dark": 0.5},
-        "Dragon": {"Dragon": 2.0, "Steel": 0.5, "Fairy": 0.0},
-        "Dark": {"Fighting": 0.5, "Psychic": 2.0, "Ghost": 2.0, "Dark": 0.5, "Fairy": 0.5},
-        "Steel": {"Fire": 0.5, "Water": 0.5, "Electric": 0.5, "Ice": 2.0, "Rock": 2.0, "Steel": 0.5, "Fairy": 2.0},
-        "Fairy": {"Fire": 0.5, "Fighting": 2.0, "Poison": 0.5, "Dragon": 2.0, "Dark": 2.0, "Steel": 0.5}
-    }
-
     def __init__(self, main_app):
         super().__init__("Type Coverage & Weaknesses", main_app)
         self.selected_types = ["Water"]
@@ -162,11 +127,11 @@ class WeaknessWidget(BaseOverlay):
         type_grid.setContentsMargins(0, 0, 0, 0)
         type_grid.setSpacing(3)
         
-        for i, t in enumerate(self.TYPES):
+        for i, t in enumerate(TYPES):
             btn = QPushButton(t)
             btn.setCheckable(True)
             btn.setFixedHeight(22)
-            btn.setStyleSheet(self._btn_style(self.TYPE_COLORS.get(t, "#3B82F6")))
+            btn.setStyleSheet(self._btn_style(TYPE_COLORS.get(t, "#3B82F6")))
             if t in self.selected_types:
                 btn.setChecked(True)
             btn.clicked.connect(lambda _, val=t: self.on_type_clicked(val))
@@ -268,7 +233,6 @@ class WeaknessWidget(BaseOverlay):
     def update_header_info(self):
         self.title_name_lbl.setText(self.current_pokemon_name)
         
-        # Clear active types pills in banner
         while self.active_types_layout.count():
             item = self.active_types_layout.takeAt(0)
             w = item.widget()
@@ -276,7 +240,7 @@ class WeaknessWidget(BaseOverlay):
                 w.deleteLater()
 
         for t in self.selected_types:
-            bg = self.TYPE_COLORS.get(t, "#444455")
+            bg = TYPE_COLORS.get(t, "#444455")
             badge = QLabel(t)
             badge.setFixedHeight(18)
             badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -295,19 +259,21 @@ class WeaknessWidget(BaseOverlay):
         parts = txt.split(" ")
         query_val = parts[0].lower()
         
-        entry = None
-        if query_val.isdigit():
-            entry = data_manager.MASTER_DEX_DB.get(query_val)
-        else:
-            entry = data_manager.MASTER_DEX_DB.get(query_val)
+        entry = data_manager.MASTER_DEX_DB.get(query_val)
             
         if entry:
             self.current_pokemon_name = entry.get("name", "Unknown Pokémon").capitalize()
             cid = entry.get("_clean_id")
             if cid:
                 self.load_sprite(cid)
+            
             types = entry.get("types", [])
-            cleaned_types = [str(t).capitalize() for t in types if str(t).capitalize() in self.TYPES]
+            cleaned_types = []
+            for t in types:
+                cap_t = str(t).capitalize()
+                if cap_t in TYPES and cap_t not in cleaned_types:
+                    cleaned_types.append(cap_t)
+            
             if cleaned_types:
                 self.selected_types = cleaned_types[:2]
                 for t, btn in self.type_buttons.items():
@@ -361,7 +327,7 @@ class WeaknessWidget(BaseOverlay):
             row_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
             
             for type_name, mult_str in chunk:
-                bg = self.TYPE_COLORS.get(type_name, "#555566")
+                bg = TYPE_COLORS.get(type_name, "#555566")
                 badge = QLabel(f"{type_name} ({mult_str})")
                 badge.setFixedHeight(20)
                 badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -375,9 +341,9 @@ class WeaknessWidget(BaseOverlay):
 
     def calculate_matchups(self):
         multipliers = {}
-        for atk_type in self.TYPES:
+        for atk_type in TYPES:
             mult = 1.0
-            type_chart = self.CHART.get(atk_type, {})
+            type_chart = CHART.get(atk_type, {})
             for def_type in self.selected_types:
                 if def_type in type_chart:
                     mult *= type_chart[def_type]

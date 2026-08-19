@@ -20,6 +20,7 @@ DEFAULT_CONFIG = {
     "timers_visible": False,
     "weakness_visible": False,
     "sticky_note_visible": False,
+    "locations_visible": False,
     "counter_rows": [
         {"name": "change me",
          "count": 0,
@@ -55,12 +56,14 @@ DEFAULT_CONFIG = {
     "timers_pos": [1567, 431],
     "weakness_pos": [350, 250],
     "sticky_note_pos": [400, 200],
+    "locations_pos": [400, 200],
     "counter_size": [202, 57],
     "pokedex_size": [480, 720],
     "breeding_size": [720, 480],
     "timers_size": [203, 96],
     "weakness_size": [360, 480],
     "sticky_note_size": [280, 300],
+    "locations_size": [540, 560],
 }
 
 def load_config():
