@@ -66,6 +66,24 @@ def load_all_databases():
                         entry["_clean_name"] = name_cap
                         entry["_clean_id"] = p_id
                         
+                        # Clean and deduplicate types globally
+                        raw_types = entry.get("types", [])
+                        cleaned_types = []
+                        for t in raw_types:
+                            if isinstance(t, dict):
+                                t_name = t.get("name", t.get("type", ""))
+                                if isinstance(t_name, dict):
+                                    t_name = t_name.get("name", "")
+                                if t_name:
+                                    cap_t = str(t_name).capitalize()
+                                    if cap_t not in cleaned_types:
+                                        cleaned_types.append(cap_t)
+                            elif t:
+                                cap_t = str(t).capitalize()
+                                if cap_t not in cleaned_types:
+                                    cleaned_types.append(cap_t)
+                        entry["types"] = cleaned_types
+                        
                         if p_id: 
                             MASTER_DEX_DB[p_id] = entry
                         MASTER_DEX_DB[name.lower()] = entry

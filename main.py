@@ -163,5 +163,8 @@ if __name__ == "__main__":
     app.setStyleSheet(MODERN_DARK_STYLESHEET)
 
     main_app = MainAppController()
+    
+    # Hook up settings saving when the application exits
+    app.aboutToQuit.connect(main_app.save_settings)
 
     sys.exit(app.exec())

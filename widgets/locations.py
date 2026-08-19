@@ -18,7 +18,7 @@ class LocationsWidget(BaseOverlay):
         self._sprite_cache = {}
         
         # Enforce a minimum size to prevent the UI from shrinking into the broken column-stacking state
-        self.setMinimumSize(500, 450)
+        self.setMinimumSize(600, 400)
         
         # Pre-flatten encounters and pre-resolve Pokémon IDs for high-performance searching
         self._all_encounters = []
@@ -325,6 +325,7 @@ class LocationsWidget(BaseOverlay):
                 "region": region_title,
                 "location": sub_area_title,
                 "level": lvl_str,
+                "season": season,
                 "morning": morning_rate,
                 "day": day_rate,
                 "night": night_rate
@@ -341,6 +342,7 @@ class LocationsWidget(BaseOverlay):
                             <th style='padding: 6px 4px; border-bottom: 2px solid #3E3E50; white-space: nowrap;'>Type</th>
                             <th style='padding: 6px 4px; border-bottom: 2px solid #3E3E50;'>Region / Location</th>
                             <th style='padding: 6px 4px; border-bottom: 2px solid #3E3E50; text-align: center; white-space: nowrap;'>Lvl</th>
+                            <th style='padding: 6px 4px; border-bottom: 2px solid #3E3E50; text-align: center; white-space: nowrap;'>Season</th>
                             <th style='padding: 6px 4px; border-bottom: 2px solid #3E3E50; text-align: center; white-space: nowrap;'>🌅</th>
                             <th style='padding: 6px 4px; border-bottom: 2px solid #3E3E50; text-align: center; white-space: nowrap;'>☀️</th>
                             <th style='padding: 6px 4px; border-bottom: 2px solid #3E3E50; text-align: center; white-space: nowrap;'>🌙</th>
@@ -364,6 +366,7 @@ class LocationsWidget(BaseOverlay):
                         <td style='padding: 6px 4px; font-weight: bold; color: #90CDF4; vertical-align: middle; white-space: nowrap;'>{r['type']}</td>
                         <td style='padding: 6px 4px; color: #D0D0DC; vertical-align: middle;'>{r['region']} - {r['location']}</td>
                         <td style='padding: 6px 4px; text-align: center; color: #A0C0E0; vertical-align: middle; white-space: nowrap;'>{r['level']}</td>
+                        <td style='padding: 6px 4px; text-align: center; color: #D2D2E0; vertical-align: middle; white-space: nowrap;'>{r['season']}</td>
                         <td style='padding: 6px 4px; text-align: center; color: {m_color}; font-weight: bold; vertical-align: middle; white-space: nowrap;'>{r['morning']}</td>
                         <td style='padding: 6px 4px; text-align: center; color: {d_color}; font-weight: bold; vertical-align: middle; white-space: nowrap;'>{r['day']}</td>
                         <td style='padding: 6px 4px; text-align: center; color: {n_color}; font-weight: bold; vertical-align: middle; white-space: nowrap;'>{r['night']}</td>
