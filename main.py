@@ -20,7 +20,7 @@ from widgets.settings import SettingsWindow
 from widgets.stickynotes import NotepadWidget
 from widgets.locations import LocationsWidget
 
-CURRENT_VERSION = "1.2.0"  # Update this string whenever you release a new version
+CURRENT_VERSION = "1.2"  # Update this string whenever you release a new version
 
 class MainAppController:
 
