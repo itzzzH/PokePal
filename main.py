@@ -1,6 +1,9 @@
 # main.py
 import sys
 import time
+import urllib.request
+import json
+import threading
 from PyQt6.QtWidgets import QApplication
 
 from config import load_config, save_config, DEFAULT_CONFIG
@@ -17,6 +20,7 @@ from widgets.settings import SettingsWindow
 from widgets.stickynotes import NotepadWidget
 from widgets.locations import LocationsWidget
 
+CURRENT_VERSION = "1.2.0"  # Update this string whenever you release a new version
 
 class MainAppController:
 
@@ -46,6 +50,11 @@ class MainAppController:
 
         # 1. Load databases
         data_manager.load_all_databases()
+
+        # 1.5. Check for updates in the background
+        self.update_available = False
+        self.latest_version_url = "https://github.com/itzzzH/PokePal/releases/latest"
+        threading.Thread(target=self.check_for_updates_silently, daemon=True).start()
 
         # 2. Register overlay widgets: {key: (instance, default_visible, saves_size)}
         self.widgets = {
@@ -90,6 +99,22 @@ class MainAppController:
             self.hub.show()
 
         self._initializing = False
+
+    def check_for_updates_silently(self):
+        """Checks GitHub API for a newer release version."""
+        url = "https://api.github.com/repos/itzzzH/PokePal/releases/latest"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "PokePal-App"})
+            with urllib.request.urlopen(req, timeout=5) as response:
+                data = json.loads(response.read().decode())
+                latest_tag = data.get("tag_name", "").strip("v")
+                
+                if latest_tag and latest_tag != CURRENT_VERSION:
+                    self.update_available = True
+                    print(f"Update available: v{latest_tag}")
+        except Exception as e:
+            # Silently fail so the app never hangs if offline
+            pass
 
     def toggle_widget(self, key: str):
         if key in self.widgets:

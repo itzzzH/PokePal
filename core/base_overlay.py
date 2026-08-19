@@ -39,6 +39,16 @@ class BaseOverlay(QWidget):
 
     def populate_base_actions(self, menu):
         """Populates shared app navigation and settings options into a menu."""
+        
+        # Check if an update is available and inject menu item
+        if getattr(self.main_app, "update_available", False):
+            menu.addSeparator()
+            update_action = menu.addAction("✨ Update Available! (Click to open)")
+            update_action.triggered.connect(
+                lambda: __import__("webbrowser").open(self.main_app.latest_version_url)
+            )
+            menu.addSeparator()
+
         if self.main_app:
             toggles = [
                 ("Toggle Counter", getattr(self.main_app, "toggle_counter", None)),
