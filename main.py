@@ -20,7 +20,7 @@ from widgets.settings import SettingsWindow
 from widgets.stickynotes import NotepadWidget
 from widgets.locations import LocationsWidget
 
-CURRENT_VERSION = "1.2"  # Update this string whenever you release a new version
+CURRENT_VERSION = "V1.2"  # checks github
 
 class MainAppController:
 
@@ -107,13 +107,11 @@ class MainAppController:
             req = urllib.request.Request(url, headers={"User-Agent": "PokePal-App"})
             with urllib.request.urlopen(req, timeout=5) as response:
                 data = json.loads(response.read().decode())
-                latest_tag = data.get("tag_name", "").strip("v")
+                latest_tag = data.get("tag_name", "")
                 
                 if latest_tag and latest_tag != CURRENT_VERSION:
                     self.update_available = True
-                    print(f"Update available: v{latest_tag}")
         except Exception as e:
-            # Silently fail so the app never hangs if offline
             pass
 
     def toggle_widget(self, key: str):

@@ -1,5 +1,6 @@
 # core/base_overlay.py
 import os
+import webbrowser
 from PyQt6.QtCore import Qt, QPoint
 from PyQt6.QtGui import QColor, QPixmap, QPixmapCache
 from PyQt6.QtWidgets import QWidget, QFrame, QHBoxLayout, QLabel, QMenu, QApplication
@@ -40,12 +41,12 @@ class BaseOverlay(QWidget):
     def populate_base_actions(self, menu):
         """Populates shared app navigation and settings options into a menu."""
         
-        # Check if an update is available and inject menu item
+        # Check if an update is available and displays in context menu
         if getattr(self.main_app, "update_available", False):
             menu.addSeparator()
             update_action = menu.addAction("✨ Update Available! (Click to open)")
             update_action.triggered.connect(
-                lambda: __import__("webbrowser").open(self.main_app.latest_version_url)
+                lambda: webbrowser.open(self.main_app.latest_version_url)
             )
             menu.addSeparator()
 
