@@ -227,9 +227,8 @@ class BreedingCalculatorWidget(BaseOverlay):
         c_layout.addLayout(main_h_layout)
         layout.addWidget(container)
 
-        if "breeding_pos" in self.main_app.config:
-            x, y = self.main_app.config["breeding_pos"]
-            self.move(x, y)
+        self.apply_initial_position("breeding_pos", default_rel_x=0.15, default_rel_y=0.20)
+
         if "breeding_size" in self.main_app.config:
             w, h = self.main_app.config["breeding_size"]
             self.resize(w, h)

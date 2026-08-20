@@ -1,7 +1,8 @@
 # widgets/timers.py
 import time
 from PyQt6.QtCore import QTimer, Qt
-from PyQt6.QtWidgets import QVBoxLayout, QSizeGrip, QMenu, QLabel
+from PyQt6.QtGui import QGuiApplication, QFontMetrics
+from PyQt6.QtWidgets import QVBoxLayout, QSizeGrip, QMenu, QLabel, QSizePolicy
 from core.base_overlay import BaseOverlay, ThemeBackgroundFrame, DisplayRowItem
 
 class TimersWidget(BaseOverlay):
@@ -53,11 +54,11 @@ class TimersWidget(BaseOverlay):
             r["last_updated"] = current_time
 
         self.layout = QVBoxLayout(self)
-        self.layout.setContentsMargins(4, 4, 4, 4)
+        self.layout.setContentsMargins(2, 2, 2, 2)
         
         self.container = ThemeBackgroundFrame()
         self.container_layout = QVBoxLayout(self.container)
-        self.container_layout.setContentsMargins(8, 6, 8, 6)
+        self.container_layout.setContentsMargins(6, 4, 6, 4)
         self.container_layout.setSpacing(2)
 
         self.layout.addWidget(self.container)
@@ -66,6 +67,11 @@ class TimersWidget(BaseOverlay):
 
         if "timers_pos" in self.main_app.config:
             x, y = self.main_app.config["timers_pos"]
+            screen = QGuiApplication.primaryScreen()
+            if screen:
+                screen_geo = screen.availableGeometry()
+                x = max(screen_geo.x(), min(x, screen_geo.x() + screen_geo.width() - self.width()))
+                y = max(screen_geo.y(), min(y, screen_geo.y() + screen_geo.height() - self.height()))
             self.move(x, y)
 
         self.size_grip = QSizeGrip(self)
@@ -140,22 +146,26 @@ class TimersWidget(BaseOverlay):
         self._clear_container_layout()
         self.row_widgets.clear()
 
+        row_count = len(self.main_app.timer_rows)
+        min_h = max(70, 16 + (row_count * 30))
+        min_w = 210
+        self.setMinimumSize(min_w, min_h)
+
         for idx, data in enumerate(self.main_app.timer_rows):
             data.setdefault("remaining", data.get("duration", 3600))
             data.setdefault("is_running", False)
             data.setdefault("expired", False)
             data.setdefault("last_updated", time.time())
 
-            # on_click=None disables full-row clicking
-            row_item = DisplayRowItem(idx, icon_size=32, on_click=None)
+            row_item = DisplayRowItem(idx, icon_size=24, on_click=None)
             self.container_layout.addWidget(row_item)
             self.row_widgets.append(row_item)
 
         if apply_saved_size and "timers_size" in self.main_app.config:
-            w, h = self.main_app.config["timers_size"]
-            self.resize(w, h)
+            saved_w, saved_h = self.main_app.config["timers_size"]
+            self.resize(max(min_w, saved_w), max(min_h, saved_h))
         else:
-            self.resize(280, max(60, 16 + (len(self.main_app.timer_rows) * 40)))
+            self.resize(min_w, min_h)
         
         if hasattr(self, 'text_hex'):
             self.update_row_styles()
@@ -225,19 +235,34 @@ class TimersWidget(BaseOverlay):
             }
             row.update_row_content(clean_name, time_str, style_config)
 
-            # Make only the time label interactive with fixed width/alignment to prevent jumping
-            val_lbl = getattr(row, "value_label", None) or getattr(row, "time_label", None)
-            if not val_lbl:
-                labels = row.findChildren(QLabel)
-                if labels:
+            row_lay = row.layout
+            if row_lay and hasattr(row_lay, "setSpacing"):
+                row_lay.setContentsMargins(2, 0, 2, 0)
+                row_lay.setSpacing(8)
+
+            labels = row.findChildren(QLabel)
+            if labels:
+                name_lbl = getattr(row, "name_label", None) or getattr(row, "title_label", None)
+                val_lbl = getattr(row, "value_label", None) or getattr(row, "time_label", None)
+
+                if not name_lbl and len(labels) >= 2:
+                    name_lbl = labels[0]
+                if not val_lbl and len(labels) >= 1:
                     val_lbl = labels[-1]
-            
-            if val_lbl:
-                val_lbl.setCursor(Qt.CursorShape.PointingHandCursor)
-                val_lbl.setFixedWidth(75)
-                val_lbl.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-                idx = i
-                val_lbl.mousePressEvent = lambda event, index=idx: self.toggle_row(index)
+
+                if name_lbl:
+                    name_lbl.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+                    name_lbl.setMinimumWidth(40)
+
+                if val_lbl:
+                    val_lbl.setCursor(Qt.CursorShape.PointingHandCursor)
+                    fm = QFontMetrics(val_lbl.font())
+                    needed_w = fm.horizontalAdvance("00:00:00") + 6
+                    val_lbl.setMinimumWidth(needed_w)
+                    val_lbl.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
+                    val_lbl.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                    idx = i
+                    val_lbl.mousePressEvent = lambda event, index=idx: self.toggle_row(index)
 
     def update_row_display(self):
         self.update_row_styles()

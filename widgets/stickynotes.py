@@ -1,5 +1,6 @@
 # widgets/stickynotes.py
 from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QGuiApplication
 from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QTextEdit, 
     QFrame, QSizeGrip, QTabWidget, QPushButton,
@@ -116,15 +117,25 @@ class NotepadWidget(BaseOverlay):
         self.c_layout.addWidget(self.tabs, 1)
         self.layout.addWidget(self.container)
 
-        # Preserve original position and size behavior
+        # Set minimum size to prevent widget collapse on lower resolution screens
+        self.setMinimumSize(220, 180)
+
+        # Restore saved dimensions or default size
+        w, h = 300, 300
+        if "sticky_note_size" in self.main_app.config:
+            saved_w, saved_h = self.main_app.config["sticky_note_size"]
+            w, h = max(220, saved_w), max(180, saved_h)
+        self.resize(w, h)
+
+        # Restore saved position while clamping within screen boundaries for variable display resolutions
         if "sticky_note_pos" in self.main_app.config:
             x, y = self.main_app.config["sticky_note_pos"]
+            screen = QGuiApplication.primaryScreen()
+            if screen:
+                screen_geo = screen.availableGeometry()
+                x = max(screen_geo.x(), min(x, screen_geo.x() + screen_geo.width() - w))
+                y = max(screen_geo.y(), min(y, screen_geo.y() + screen_geo.height() - h))
             self.move(x, y)
-        if "sticky_note_size" in self.main_app.config:
-            w, h = self.main_app.config["sticky_note_size"]
-            self.resize(w, h)
-        else:
-            self.resize(300, 300)
 
         self.size_grip = QSizeGrip(self)
         self.size_grip.setStyleSheet("background: transparent; width: 14px; height: 14px;")
@@ -201,7 +212,7 @@ class NotepadWidget(BaseOverlay):
             self.save_notes()
 
     def save_note_as_txt(self, index):
-        """Opens a file dialog to save the contents ofpropertyPath the selected note tab as a text file."""
+        """Opens a file dialog to save the contents of the selected note tab as a text file."""
         if index == -1:
             return
         title = self.tabs.tabText(index)

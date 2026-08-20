@@ -1,7 +1,7 @@
 # widgets/weakness.py
 import os
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap, QPixmapCache
+from PyQt6.QtGui import QPixmap, QPixmapCache, QGuiApplication
 from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
     QFrame, QGroupBox, QSizeGrip, QWidget, QGridLayout,
@@ -82,7 +82,7 @@ class WeaknessWidget(BaseOverlay):
         search_row.addWidget(btn_search)
         c_layout.addLayout(search_row)
 
-        # Active Pokémon Modern Banner Card
+        # Active Pokémon Banner Card
         self.info_card = QFrame()
         self.info_card.setStyleSheet("QFrame { background-color: #1A1A22; border-radius: 8px; border: 1px solid #2D2D3D; }")
         info_layout = QHBoxLayout(self.info_card)
@@ -104,7 +104,7 @@ class WeaknessWidget(BaseOverlay):
         self.title_name_lbl.setStyleSheet("color: #E2E8F0; font-size: 11px; font-weight: bold; border: none; background: transparent;")
         info_text_layout.addWidget(self.title_name_lbl)
 
-        # Container for active type pills inside the banner
+        # Active type pills inside banner
         self.active_types_widget = QWidget()
         self.active_types_layout = QHBoxLayout(self.active_types_widget)
         self.active_types_layout.setContentsMargins(0, 0, 0, 0)
@@ -115,7 +115,7 @@ class WeaknessWidget(BaseOverlay):
         info_layout.addLayout(info_text_layout, 1)
         c_layout.addWidget(self.info_card)
 
-        # Compact Type Selection Grid Box
+        # Type Selection Grid Box
         select_box = QGroupBox("Select Types (Max 2)")
         select_box.setStyleSheet(self._box_style())
         s_layout = QVBoxLayout(select_box)
@@ -130,7 +130,7 @@ class WeaknessWidget(BaseOverlay):
         for i, t in enumerate(TYPES):
             btn = QPushButton(t)
             btn.setCheckable(True)
-            btn.setFixedHeight(22)
+            btn.setFixedHeight(25)
             btn.setStyleSheet(self._btn_style(TYPE_COLORS.get(t, "#3B82F6")))
             if t in self.selected_types:
                 btn.setChecked(True)
@@ -141,26 +141,37 @@ class WeaknessWidget(BaseOverlay):
         s_layout.addLayout(type_grid)
         c_layout.addWidget(select_box)
 
-        # Results Box
+        # Results Box (Dynamic expansion structure)
         results_box = QGroupBox("Damage Multipliers Breakdown")
         results_box.setStyleSheet(self._box_style())
-        r_layout = QVBoxLayout(results_box)
-        r_layout.setContentsMargins(6, 6, 6, 6)
-        r_layout.setSpacing(4)
+        r_box_layout = QVBoxLayout(results_box)
+        r_box_layout.setContentsMargins(6, 6, 6, 6)
+        r_box_layout.setSpacing(6)
 
-        self.weak_layout = self._create_result_section(r_layout, "⚡ Weaknesses", "#FF6B6B")
-        self.resist_layout = self._create_result_section(r_layout, "🛡️ Resistances", "#55FF55")
-        self.immune_layout = self._create_result_section(r_layout, "🚫 Immunities", "#90CDF4")
+        self.weak_layout = self._create_result_section(r_box_layout, "⚡ Weaknesses", "#FF6B6B")
+        self.resist_layout = self._create_result_section(r_box_layout, "🛡️ Resistances", "#55FF55")
+        self.immune_layout = self._create_result_section(r_box_layout, "🚫 Immunities", "#90CDF4")
         
-        c_layout.addWidget(results_box, 1)
+        c_layout.addWidget(results_box)
         layout.addWidget(container)
 
-        if "weakness_pos" in self.main_app.config:
-            self.move(*self.main_app.config["weakness_pos"])
+        # Set a solid minimum size to prevent squishing elements into each other
+        self.setMinimumSize(280, 540)
+
+        w, h = 280, 540
         if "weakness_size" in self.main_app.config:
-            self.resize(*self.main_app.config["weakness_size"])
-        else:
-            self.resize(340, 570)
+            saved_w, saved_h = self.main_app.config["weakness_size"]
+            w, h = max(280, saved_w), max(540, saved_h)
+        self.resize(w, h)
+
+        if "weakness_pos" in self.main_app.config:
+            x, y = self.main_app.config["weakness_pos"]
+            screen = QGuiApplication.primaryScreen()
+            if screen:
+                screen_geo = screen.availableGeometry()
+                x = max(screen_geo.x(), min(x, screen_geo.x() + screen_geo.width() - w))
+                y = max(screen_geo.y(), min(y, screen_geo.y() + screen_geo.height() - h))
+            self.move(x, y)
 
         self.size_grip = QSizeGrip(self)
         self.size_grip.setStyleSheet("background: transparent; width: 14px; height: 14px;")
@@ -177,7 +188,15 @@ class WeaknessWidget(BaseOverlay):
     @staticmethod
     def _btn_style(color):
         return f"""
-            QPushButton {{ background-color: #1B1B24; color: #A0A0B2; border: 1px solid #2E2E3D; border-radius: 4px; font-size: 9px; font-weight: bold; }}
+            QPushButton {{ 
+                background-color: #1B1B24; 
+                color: #A0A0B2; 
+                border: 1px solid #2E2E3D; 
+                border-radius: 4px; 
+                font-size: 9px; 
+                font-weight: bold;
+                padding: 1px 1px 2px 1px;
+            }}
             QPushButton:checked {{ background-color: {color}; color: #FFFFFF; font-weight: bold; border: 1px solid #FFFFFF; }}
             QPushButton:hover {{ background-color: #262633; border-color: {color}; }}
         """
@@ -191,19 +210,24 @@ class WeaknessWidget(BaseOverlay):
         title.setStyleSheet(f"color: {title_color}; font-size: 10px; font-weight: bold; border: none; background: transparent;")
         v_box.addWidget(title)
         
-        rows_container = QWidget()
-        rows_layout = QVBoxLayout(rows_container)
+        rows_layout = QVBoxLayout()
         rows_layout.setContentsMargins(0, 0, 0, 0)
         rows_layout.setSpacing(2)
-        rows_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        v_box.addWidget(rows_container)
+        v_box.addLayout(rows_layout)
         
         parent_layout.addLayout(v_box)
         return rows_layout
 
+    def moveEvent(self, event):
+        super().moveEvent(event)
+        if hasattr(self, "main_app") and hasattr(self.main_app, "config"):
+            self.main_app.config["weakness_pos"] = [self.x(), self.y()]
+
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.size_grip.move(self.width() - 20, self.height() - 20)
+        if hasattr(self, "main_app") and hasattr(self.main_app, "config"):
+            self.main_app.config["weakness_size"] = [self.width(), self.height()]
 
     def load_sprite(self, cid):
         cache_key = f"weakness_sprite_{cid}"
@@ -318,10 +342,9 @@ class WeaknessWidget(BaseOverlay):
             layout.addWidget(lbl)
             return
 
-        for i in range(0, len(badges_data), 5):
-            chunk = badges_data[i:i+5]
-            row_widget = QWidget()
-            row_layout = QHBoxLayout(row_widget)
+        for i in range(0, len(badges_data), 3):
+            chunk = badges_data[i:i+3]
+            row_layout = QHBoxLayout()
             row_layout.setContentsMargins(0, 0, 0, 0)
             row_layout.setSpacing(3)
             row_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -329,15 +352,15 @@ class WeaknessWidget(BaseOverlay):
             for type_name, mult_str in chunk:
                 bg = TYPE_COLORS.get(type_name, "#555566")
                 badge = QLabel(f"{type_name} ({mult_str})")
-                badge.setFixedHeight(20)
+                badge.setFixedHeight(22)
                 badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 badge.setStyleSheet(
                     f"background-color: {bg}; color: #FFFFFF; font-size: 9px; font-weight: bold; "
-                    f"padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.2);"
+                    f"padding: 1px 5px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.2);"
                 )
                 row_layout.addWidget(badge)
             
-            layout.addWidget(row_widget)
+            layout.addLayout(row_layout)
 
     def calculate_matchups(self):
         multipliers = {}
@@ -366,3 +389,6 @@ class WeaknessWidget(BaseOverlay):
         self.populate_section(self.weak_layout, weak_badges)
         self.populate_section(self.resist_layout, resist_badges)
         self.populate_section(self.immune_layout, immune_badges)
+
+        # Automatically adjust window height to fit content dynamically
+        self.adjustSize()

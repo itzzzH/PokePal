@@ -20,6 +20,30 @@ class BaseOverlay(QWidget):
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
+    def apply_initial_position(self, config_key, default_rel_x=0.85, default_rel_y=0.85):
+        """
+        Positions the overlay dynamically based on screen percentages if no saved config exists,
+        and clamps coordinates so they always remain visible on any screen resolution.
+        """
+        screen = QApplication.primaryScreen().availableGeometry()
+
+        # Determine target raw position
+        if hasattr(self.main_app, "config") and config_key in self.main_app.config:
+            x, y = self.main_app.config[config_key]
+        else:
+            # First-time launch: position relative to screen width/height
+            x = int(screen.width() * default_rel_x)
+            y = int(screen.height() * default_rel_y)
+
+        # Dynamic screen bounds clamping (Keeps window strictly inside visible display area)
+        max_x = max(0, screen.width() - self.width())
+        max_y = max(0, screen.height() - self.height())
+
+        safe_x = max(0, min(x, max_x))
+        safe_y = max(0, min(y, max_y))
+
+        self.move(safe_x, safe_y)
+
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.drag_position = event.globalPosition().toPoint() - self.frameGeometry().topLeft()

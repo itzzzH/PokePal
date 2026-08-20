@@ -4,6 +4,8 @@ import time
 import urllib.request
 import json
 import threading
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QGuiApplication
 from PyQt6.QtWidgets import QApplication
 
 from config import load_config, save_config, DEFAULT_CONFIG
@@ -181,6 +183,11 @@ class MainAppController:
 
 
 if __name__ == "__main__":
+    # Ensure smooth High-DPI scaling across display configurations
+    QGuiApplication.setHighDpiScaleFactorRoundingPolicy(
+        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
+    )
+
     app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
     app.setStyleSheet(MODERN_DARK_STYLESHEET)

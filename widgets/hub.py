@@ -1,3 +1,4 @@
+# widgets/hub.py
 from pathlib import Path
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPainter, QPixmap, QColor
@@ -8,9 +9,7 @@ class PokeballHub(BaseOverlay):
         super().__init__("Hub", main_app)
         self.setFixedSize(60, 60)
 
-        if "hub_pos" in self.main_app.config:
-            x, y = self.main_app.config["hub_pos"]
-            self.move(x, y)
+        self.apply_initial_position("hub_pos", default_rel_x=0.02, default_rel_y=0.02)
 
         self.raw_pixmap = None
         

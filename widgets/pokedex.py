@@ -2,11 +2,11 @@
 import os
 import math
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap, QPixmapCache
+from PyQt6.QtGui import QPixmap, QPixmapCache, QGuiApplication
 from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, 
     QFrame, QGroupBox, QSizeGrip, QProgressBar, QCompleter, QTextEdit,
-    QWidget, QGridLayout, QSpinBox
+    QWidget, QGridLayout, QSpinBox, QScrollArea, QSizePolicy
 )
 from core.base_overlay import BaseOverlay
 import data_manager
@@ -46,6 +46,9 @@ class PokedexWidget(BaseOverlay):
         self.current_id = 1
         self.sprite_mode = 0
         self.active_view = "calculator"
+
+        # Minimum size restriction for calculator view to prevent breaking UI
+        self.setMinimumSize(420, 720)
 
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(4, 4, 4, 4)
@@ -148,6 +151,7 @@ class PokedexWidget(BaseOverlay):
         self.c_layout.addLayout(mid_info_layout)
         
         stats_box = QGroupBox("Base Stats")
+        stats_box.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         s_layout = QVBoxLayout(stats_box)
         s_layout.setContentsMargins(6, 6, 6, 6)
         s_layout.setSpacing(2)
@@ -171,6 +175,7 @@ class PokedexWidget(BaseOverlay):
         self.c_layout.addWidget(stats_box)
         
         filters_box = QGroupBox("View Options")
+        filters_box.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         f_layout = QVBoxLayout(filters_box)
         f_layout.setContentsMargins(6, 6, 6, 6)
         f_layout.setSpacing(4)
@@ -198,7 +203,6 @@ class PokedexWidget(BaseOverlay):
         view_row = QHBoxLayout()
         view_row.setSpacing(4)
         
-        # Stat Calculator on the left, Moves on the right
         self.btn_view_calc = QPushButton("Stat Calculator")
         self.btn_view_calc.setCheckable(True)
         self.btn_view_calc.setChecked(True)
@@ -219,13 +223,18 @@ class PokedexWidget(BaseOverlay):
 
         self.c_layout.addWidget(filters_box)
         
-        # Display Area Container supporting both Stat Calculator and Moves views
+        # Scroll area wrapper for views
+        self.display_scroll = QScrollArea()
+        self.display_scroll.setWidgetResizable(True)
+        self.display_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self.display_scroll.setStyleSheet("QScrollArea { background: transparent; border: none; }")
+
         self.display_container = QWidget()
         self.display_layout = QVBoxLayout(self.display_container)
         self.display_layout.setContentsMargins(0, 0, 0, 0)
         self.display_layout.setSpacing(0)
 
-        # Calculator View Widget (Set on the left / default active)
+        # Calculator View Widget
         self.calc_widget = QWidget()
         c_outer_layout = QVBoxLayout(self.calc_widget)
         c_outer_layout.setContentsMargins(0, 0, 0, 0)
@@ -238,7 +247,10 @@ class PokedexWidget(BaseOverlay):
         s_config_layout.setHorizontalSpacing(10)
         s_config_layout.setVerticalSpacing(4)
 
-        s_config_layout.addWidget(QLabel("Level:"), 0, 0)
+        lbl_lvl = QLabel("Level:")
+        lbl_lvl.setStyleSheet("color: #A0A0B2; font-size: 10px; font-weight: bold; border: none; background: transparent;")
+        s_config_layout.addWidget(lbl_lvl, 0, 0)
+        
         self.level_spin = QSpinBox()
         self.level_spin.setRange(1, 100)
         self.level_spin.setValue(50)
@@ -246,7 +258,10 @@ class PokedexWidget(BaseOverlay):
         self.level_spin.valueChanged.connect(self.calculate_stats)
         s_config_layout.addWidget(self.level_spin, 0, 1)
 
-        s_config_layout.addWidget(QLabel("Nature:"), 0, 2)
+        lbl_nat = QLabel("Nature:")
+        lbl_nat.setStyleSheet("color: #A0A0B2; font-size: 10px; font-weight: bold; border: none; background: transparent;")
+        s_config_layout.addWidget(lbl_nat, 0, 2)
+        
         self.nature_input = QLineEdit()
         self.nature_input.setText("Hardy")
         self.nature_input.setPlaceholderText("Nature name")
@@ -290,36 +305,45 @@ class PokedexWidget(BaseOverlay):
             """)
             row_layout = QHBoxLayout(row_frame)
             row_layout.setContentsMargins(6, 2, 6, 2)
-            row_layout.setSpacing(6)
+            row_layout.setSpacing(4)
 
             lbl_name = QLabel(label)
-            lbl_name.setFixedSize(52, 20)
+            lbl_name.setFixedWidth(52)
             lbl_name.setStyleSheet("color: #90CDF4; font-size: 10px; font-weight: bold; border: none; background: transparent;")
             row_layout.addWidget(lbl_name)
 
-            row_layout.addWidget(QLabel("Base:"))
+            lbl_b = QLabel("Base:")
+            lbl_b.setStyleSheet("color: #8F8FA8; font-size: 9px; border: none; background: transparent;")
+            row_layout.addWidget(lbl_b)
+            
             base_spin = QSpinBox()
             base_spin.setRange(1, 255)
             base_spin.setValue(45)
-            base_spin.setFixedWidth(42); base_spin.setFixedHeight(22)
+            base_spin.setFixedWidth(40); base_spin.setFixedHeight(20)
             base_spin.setStyleSheet(self._input_style())
             base_spin.valueChanged.connect(self.calculate_stats)
             row_layout.addWidget(base_spin)
 
-            row_layout.addWidget(QLabel("IV:"))
+            lbl_i = QLabel("IV:")
+            lbl_i.setStyleSheet("color: #8F8FA8; font-size: 9px; border: none; background: transparent;")
+            row_layout.addWidget(lbl_i)
+            
             iv_spin = QSpinBox()
             iv_spin.setRange(0, 31)
             iv_spin.setValue(31)
-            iv_spin.setFixedWidth(38); iv_spin.setFixedHeight(22)
+            iv_spin.setFixedWidth(36); iv_spin.setFixedHeight(20)
             iv_spin.setStyleSheet(self._input_style())
             iv_spin.valueChanged.connect(self.calculate_stats)
             row_layout.addWidget(iv_spin)
 
-            row_layout.addWidget(QLabel("EV:"))
+            lbl_e = QLabel("EV:")
+            lbl_e.setStyleSheet("color: #8F8FA8; font-size: 9px; border: none; background: transparent;")
+            row_layout.addWidget(lbl_e)
+            
             ev_spin = QSpinBox()
             ev_spin.setRange(0, 252)
             ev_spin.setValue(252 if key in ["hp", "attack", "sp_atk", "speed"] else 0)
-            ev_spin.setFixedWidth(44); ev_spin.setFixedHeight(22)
+            ev_spin.setFixedWidth(42); ev_spin.setFixedHeight(20)
             ev_spin.setStyleSheet(self._input_style())
             ev_spin.valueChanged.connect(self.calculate_stats)
             row_layout.addWidget(ev_spin)
@@ -327,9 +351,9 @@ class PokedexWidget(BaseOverlay):
             row_layout.addStretch()
 
             lbl_result = QLabel("0")
-            lbl_result.setFixedWidth(45)
+            lbl_result.setFixedWidth(42)
             lbl_result.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            lbl_result.setStyleSheet("color: #3B82F6; font-size: 11px; font-weight: bold; border: none; background: #111116; border-radius: 3px;")
+            lbl_result.setStyleSheet("color: #3B82F6; font-size: 10px; font-weight: bold; border: none; background: #111116; border-radius: 3px;")
             row_layout.addWidget(lbl_result)
 
             self.stat_rows[key] = {
@@ -362,7 +386,7 @@ class PokedexWidget(BaseOverlay):
         c_outer_layout.addWidget(stats_calc_box)
         self.display_layout.addWidget(self.calc_widget)
 
-        # Moves View Widget (On the right)
+        # Moves View Widget
         self.moves_widget = QWidget()
         m_layout = QVBoxLayout(self.moves_widget)
         m_layout.setContentsMargins(0, 0, 0, 0)
@@ -373,27 +397,38 @@ class PokedexWidget(BaseOverlay):
         
         self.location_text_area = QTextEdit()
         self.location_text_area.setReadOnly(True)
+        self.location_text_area.setFixedHeight(360)
         self.location_text_area.setStyleSheet("background: #141418; border: none; color: #E2E2E8; font-size: 11px;")
         mb_layout.addWidget(self.location_text_area)
         m_layout.addWidget(moves_box)
         self.moves_widget.setVisible(False)
         self.display_layout.addWidget(self.moves_widget)
 
-        self.c_layout.addWidget(self.display_container, 1)
+        self.display_scroll.setWidget(self.display_container)
+        self.c_layout.addWidget(self.display_scroll, 1)
         self.layout.addWidget(self.container)
+
+        w, h = 480, 740
+        if "pokedex_size" in self.main_app.config:
+            saved_w, saved_h = self.main_app.config["pokedex_size"]
+            w, h = max(420, saved_w), max(720, saved_h)
+        self.resize(w, h)
 
         if "pokedex_pos" in self.main_app.config:
             x, y = self.main_app.config["pokedex_pos"]
+            screen = QGuiApplication.primaryScreen()
+            if screen:
+                screen_geo = screen.availableGeometry()
+                x = max(screen_geo.x(), min(x, screen_geo.x() + screen_geo.width() - w))
+                y = max(screen_geo.y(), min(y, screen_geo.y() + screen_geo.height() - h))
             self.move(x, y)
-        if "pokedex_size" in self.main_app.config:
-            w, h = self.main_app.config["pokedex_size"]
-            self.resize(w, h)
         else:
-            self.resize(480, 720)
+            self.apply_initial_position("pokedex_pos", default_rel_x=0.05, default_rel_y=0.15)
 
         self.size_grip = QSizeGrip(self)
         self.size_grip.setStyleSheet("background: transparent; width: 14px; height: 14px;")
         self.load_pokemon_data(1)
+        self.switch_view("calculator")
 
     @staticmethod
     def _box_style():
@@ -408,21 +443,49 @@ class PokedexWidget(BaseOverlay):
             QSpinBox, QLineEdit {
                 background-color: #111116; color: #E2E8F0;
                 border: 1px solid #2E2E3D; border-radius: 4px;
-                font-size: 10px; padding: 2px 4px;
+                font-size: 9px; padding: 1px 3px;
             }
             QSpinBox::up-button, QSpinBox::down-button { width: 0px; }
         """
 
+    def moveEvent(self, event):
+        super().moveEvent(event)
+        if hasattr(self, "main_app") and hasattr(self.main_app, "config"):
+            self.main_app.config["pokedex_pos"] = [self.x(), self.y()]
+
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.size_grip.move(self.width() - 20, self.height() - 20)
+        if hasattr(self, "main_app") and hasattr(self.main_app, "config"):
+            self.main_app.config["pokedex_size"] = [self.width(), self.height()]
 
     def switch_view(self, mode):
-        self.active_view = mode
-        self.btn_view_calc.setChecked(mode == "calculator")
-        self.btn_view_mov.setChecked(mode == "moves")
-        self.calc_widget.setVisible(mode == "calculator")
-        self.moves_widget.setVisible(mode == "moves")
+        """
+        Dynamically resizes window, sets strict minimum size bounds to 
+        protect the stat calculator layout, and manages scrollbars.
+        """
+        if self.active_view == mode:
+            self.active_view = None
+            self.btn_view_calc.setChecked(False)
+            self.btn_view_mov.setChecked(False)
+            self.display_scroll.setVisible(False)
+            self.setMinimumSize(420, 350)
+            self.resize(self.width(), 350)
+        else:
+            self.active_view = mode
+            self.btn_view_calc.setChecked(mode == "calculator")
+            self.btn_view_mov.setChecked(mode == "moves")
+            self.calc_widget.setVisible(mode == "calculator")
+            self.moves_widget.setVisible(mode == "moves")
+            self.display_scroll.setVisible(True)
+            self.display_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+
+            if mode == "calculator":
+                self.setMinimumSize(420, 720)
+                self.resize(self.width(), 740)
+            elif mode == "moves":
+                self.setMinimumSize(420, 480)
+                self.resize(self.width(), 540)
 
     def cycle_sprite_mode(self, event=None):
         self.sprite_mode = (self.sprite_mode + 1) % 3

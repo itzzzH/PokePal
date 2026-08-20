@@ -1,3 +1,4 @@
+# config.py
 import json
 import time
 import copy
@@ -49,14 +50,6 @@ DEFAULT_CONFIG = {
             "sprite_id": "5154",
         },
     ],
-    "hub_pos": [955, 959],
-    "counter_pos": [1568, 527],
-    "pokedex_pos": [450, 100],
-    "breeding_pos": [200, 200],
-    "timers_pos": [1567, 431],
-    "weakness_pos": [350, 250],
-    "sticky_note_pos": [400, 200],
-    "locations_pos": [400, 200],
     "counter_size": [202, 57],
     "pokedex_size": [480, 720],
     "breeding_size": [720, 480],

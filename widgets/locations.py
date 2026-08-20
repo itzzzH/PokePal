@@ -197,8 +197,7 @@ class LocationsWidget(BaseOverlay):
         c_layout.addWidget(results_box, 1)
         layout.addWidget(container)
 
-        if "locations_pos" in self.main_app.config:
-            self.move(*self.main_app.config["locations_pos"])
+        self.apply_initial_position("locations_pos", default_rel_x=0.25, default_rel_y=0.15)
         if "locations_size" in self.main_app.config:
             self.resize(*self.main_app.config["locations_size"])
         else:

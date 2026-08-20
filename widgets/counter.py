@@ -27,9 +27,7 @@ class CounterWidget(BaseOverlay):
         self.layout.addWidget(self.container)
         self.rebuild_rows(apply_saved_size=True)
 
-        if "counter_pos" in self.main_app.config:
-            x, y = self.main_app.config["counter_pos"]
-            self.move(x, y)
+        self.apply_initial_position("counter_pos", default_rel_x=0.05, default_rel_y=0.10)
 
         self.size_grip = QSizeGrip(self)
         self.size_grip.setStyleSheet("background: transparent; width: 14px; height: 14px;")

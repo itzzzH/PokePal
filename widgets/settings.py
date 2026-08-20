@@ -1,6 +1,7 @@
 # widgets/settings.py
 import time
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QGuiApplication
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit,
     QTabWidget, QSlider, QScrollArea, QGroupBox
@@ -12,7 +13,18 @@ class SettingsWindow(QWidget):
         super().__init__()
         self.main_app = main_app
         self.setWindowTitle("PokePal - Settings")
-        self.resize(760, 580)
+        self.setMinimumSize(600, 450)
+        
+        # Center the settings window dynamically within the primary screen bounds
+        screen = QGuiApplication.primaryScreen()
+        if screen:
+            screen_geo = screen.availableGeometry()
+            w, h = 760, 580
+            x = max(screen_geo.x(), screen_geo.x() + (screen_geo.width() - w) // 2)
+            y = max(screen_geo.y(), screen_geo.y() + (screen_geo.height() - h) // 2)
+            self.setGeometry(x, y, w, h)
+        else:
+            self.resize(760, 580)
         
         # Ensure the settings window always floats above other tool overlays
         self.setWindowFlags(
