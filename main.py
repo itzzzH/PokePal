@@ -22,7 +22,7 @@ from widgets.settings import SettingsWindow
 from widgets.stickynotes import NotepadWidget
 from widgets.locations import LocationsWidget
 
-CURRENT_VERSION = "V1.2"  # checks github
+CURRENT_VERSION = "V1.3"  # checks github
 
 class MainAppController:
 
